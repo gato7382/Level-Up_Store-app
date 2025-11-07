@@ -2,21 +2,23 @@
 package com.example.levelupstore_app.ui.navigation
 
 sealed class Screen(val route: String) {
+    // Rutas principales
     object Home : Screen("home")
     object Login : Screen("login")
     object Register : Screen("register")
     object Catalog : Screen("catalog")
 
+    // Ruta con argumento (para un producto)
     object ProductDetail : Screen("product_detail/{productId}") {
         fun createRoute(productId: String) = "product_detail/$productId"
     }
 
-    // --- RUTAS DE PERFIL ACTUALIZADAS ---
-    // Esta será la "ruta padre" del gráfico de perfil
+    // --- GRÁFICO DE PERFIL (RUTAS ANIDADAS) ---
+    // Esta es la "ruta padre" que agrupa todas las pantallas de perfil
     object ProfileGraph : Screen("profile_graph")
 
-    // Sub-rutas dentro del gráfico de perfil
+    // Estas son las pantallas HIJAS dentro del gráfico de perfil
     object ProfileData : Screen("profile_data")   // Para "Mis Datos"
     object OrderHistory : Screen("order_history") // Para "Mis Pedidos"
-    // --- FIN DE ACTUALIZACIÓN ---
+    // --- FIN DE RUTAS DE PERFIL ---
 }

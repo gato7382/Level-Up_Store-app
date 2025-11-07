@@ -2,7 +2,9 @@
 package com.example.levelupstore_app.ui.features.auth
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState // <-- ¡NUEVO IMPORT!
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll // <-- ¡NUEVO IMPORT!
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.levelupstore_app.ui.utils.AppViewModelFactory
+import com.example.levelupstore_app.ui.utils.DateVisualTransformation
 
 @Composable
 fun RegisterScreen(
@@ -21,24 +24,23 @@ fun RegisterScreen(
 ) {
     val uiState by authViewModel.uiState.collectAsState()
 
-    // Estado local solo para la confirmación de contraseña
     var confirmPassword by remember { mutableStateOf("") }
     var localError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(uiState.registerSuccess) {
         if (uiState.registerSuccess) {
-            // Si el registro es exitoso, navega a "home"
             navController.navigate("home") {
-                // Borra todo el historial de login/registro
                 popUpTo("login") { inclusive = true }
             }
         }
     }
 
+    // Añadimos verticalScroll para que el teclado no tape los campos
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(32.dp),
+            .padding(32.dp)
+            .verticalScroll(rememberScrollState()), // <-- ¡AÑADIDO!
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -59,18 +61,26 @@ fun RegisterScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- CAMPO DE "FECHA DE NACIMIENTO" (ANTES EDAD) ---
+        // --- CAMPO DE "FECHA DE NACIMIENTO" (¡ACTUALIZADO!) ---
         OutlinedTextField(
-            value = uiState.birthDate,
-            onValueChange = { authViewModel.onBirthDateChange(it) },
+            value = uiState.birthDate, // El valor sin formato (ej. "27101995")
+            onValueChange = { newText ->
+                // Lógica de 'onValueChange' simplificada:
+                // Solo acepta dígitos y un máximo de 8 caracteres.
+                if (newText.length <= 8 && newText.all { it.isDigit() }) {
+                    authViewModel.onBirthDateChange(newText)
+                }
+            },
             label = { Text("Fecha de Nacimiento") },
-            placeholder = { Text("AAAA-MM-DD") }, // <-- Placeholder añadido
+            placeholder = { Text("DD-MM-YYYY") },
             modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), // Mantenemos teclado numérico
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             isError = uiState.errorMessage != null || localError != null,
-            singleLine = true
+            singleLine = true,
+            // ¡El VisualTransformation se encarga de AÑADIR los guiones!
+            visualTransformation = DateVisualTransformation()
         )
-        // --- FIN DEL CAMPO REEMPLAZADO ---
+        // --- FIN DEL CAMPO ACTUALIZADO ---
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -123,12 +133,11 @@ fun RegisterScreen(
         // --- BOTÓN DE REGISTRO ---
         Button(
             onClick = {
-                // Validación local (solo contraseñas)
                 if (uiState.password != confirmPassword) {
                     localError = "Las contraseñas no coinciden"
                 } else {
                     localError = null
-                    authViewModel.register() // Llama al ViewModel (que ahora valida email y fecha)
+                    authViewModel.register()
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -146,7 +155,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        TextButton(onClick = { navController.popBackStack() }) { // popBackStack() = "volver atrás"
+        TextButton(onClick = { navController.popBackStack() }) {
             Text("¿Ya tienes una cuenta? Inicia sesión")
         }
     }
