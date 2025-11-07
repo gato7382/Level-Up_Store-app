@@ -1,0 +1,108 @@
+[
+  {
+    "id": "ps5",
+    "name": "Consola PlayStation 5",
+    "price": 649990,
+    "category": "Consolas",
+    "description": "Experimenta una velocidad sorprendente con una SSD de velocidad ultrarrápida, una inmersión más profunda con soporte para respuesta háptica, gatillos adaptativos y audio 3D.",
+    "images": [
+      "/imgs/ps51.webp",
+      "/imgs/ps52.png",
+      "/imgs/juegops5.avif"
+    ],
+    "specs": [
+      { "name": "Fabricante", "value": "Sony" },
+      { "name": "Almacenamiento", "value": "825GB SSD" },
+      { "name": "Resolución", "value": "Hasta 4K a 120fps" },
+      { "name": "Retrocompatibilidad", "value": "Sí (con PS4)" }
+    ]
+  },
+  {
+    "id": "pcgamer",
+    "name": "PC Gamer 'Titan'",
+    "price": 1299990,
+    "category": "PC Gaming",
+    "description": "Domina el campo de batalla con este PC de última generación, diseñado para el máximo rendimiento en los juegos más exigentes.",
+    "images": [
+      "/imgs/pc1.png",
+      "/imgs/pc2.jpeg"
+    ],
+    "specs": [
+      { "name": "CPU", "value": "Intel Core i7 13th Gen" },
+      { "name": "GPU", "value": "NVIDIA RTX 4070" },
+      { "name": "RAM", "value": "32GB DDR5 5200MHz" },
+      { "name": "Almacenamiento", "value": "1TB NVMe SSD Gen4" }
+    ]
+  },
+  {
+    "id": "controlxbox",
+    "name": "Control Inalámbrico Xbox",
+    "price": 59990,
+    "category": "Accesorios",
+    "description": "Descubre el diseño modernizado del Control Inalámbrico de Xbox, con superficies esculpidas y una geometría refinada para mayor comodidad durante el juego.",
+    "images": [
+      "/imgs/xbox1.webp",
+      "/imgs/xbox2.webp",
+      "/imgs/xbox3.jpeg"
+    ],
+    "specs": [
+      { "name": "Fabricante", "value": "Microsoft" },
+      { "name": "Compatibilidad", "value": "Xbox Series X|S, Xbox One, PC, Móvil" },
+      { "name": "Conectividad", "value": "Inalámbrica y Bluetooth" },
+      { "name": "Batería", "value": "Hasta 40 horas (AA)" }
+    ]
+  },
+  {
+    "id": "mouse",
+    "name": "Mouse Gamer Inalámbrico",
+    "price": 79990,
+    "category": "Accesorios",
+    "description": "Precisión y velocidad inigualables con este mouse inalámbrico de baja latencia. Sensor óptico de alta precisión y diseño ergonómico para largas sesiones de juego.",
+    "images": [
+      "/imgs/mouse.webp",
+      "/imgs/mouse1.jpg",
+      "/imgs/mouse3.webp"
+    ],
+    "specs": [
+      { "name": "Sensor", "value": "Óptico 20K DPI" },
+      { "name": "Conectividad", "value": "Inalámbrico 2.4Ghz y Bluetooth" },
+      { "name": "Botones", "value": "8 programables" },
+      { "name": "Peso", "value": "88g" }
+    ]
+  },
+  {
+    "id": "mousepad",
+    "name": "Mousepad Gamer XL",
+    "price": 24990,
+    "category": "Accesorios",
+    "description": "Superficie de tela micro-tejida optimizada para un control perfecto del píxel y un deslizamiento suave. Base de goma antideslizante y bordes cosidos.",
+    "images": [
+      "/imgs/mousepad1.webp",
+      "/imgs/mousepad2.jpg",
+      "/imgs/mousepad3.webp"
+    ],
+    "specs": [
+      { "name": "Tamaño", "value": "XL (900mm x 400mm)" },
+      { "name": "Grosor", "value": "3mm" },
+      { "name": "Superficie", "value": "Tela tipo Control" },
+      { "name": "Bordes", "value": "Cosidos" }
+    ]
+  },
+  {
+    "id": "polera",
+    "name": "Polera Gamer 'Glitch'",
+    "price": 19990,
+    "category": "Merchandising",
+    "description": "Muestra tu pasión gamer con esta polera de algodón premium y diseño exclusivo 'Glitch'. Perfecta para el día a día o para tu próximo torneo.",
+    "images": [
+      "/imgs/polera1.png",
+      "/imgs/polera2.jpeg",
+      "/imgs/polera3.jpeg"
+    ],
+    "specs": [
+      { "name": "Material", "value": "100% Algodón Peinado" },
+      { "name": "Estampado", "value": "Serigrafía de alta durabilidad" },
+      { "name": "Corte", "value": "Regular Fit" }
+    ]
+  }
+]

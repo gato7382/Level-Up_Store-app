@@ -1,0 +1,32 @@
+[
+  {
+    "email": "felipe@gmail.com",
+    "clave": "1234",
+    "nombre": "Felipe",
+    "apellidos": "Fuenzalida",
+    "telefono": "+56 9 1234 5678",
+    "fechaNacimiento": "2000-01-01",
+    "genero": "male",
+    "categoriaFavorita": "consoles",
+    "plataformaPrincipal": "pc",
+    "gamerTag": "FelipePro",
+    "bio": "Amante de los videojuegos y la tecnología.",
+    "newsletter": true,
+    "notificaciones": true
+  },
+  {
+    "email": "ana@duocuc.cl",
+    "clave": "1234",
+    "nombre": "Ana",
+    "apellidos": "Player",
+    "telefono": "+56 9 8765 4321",
+    "fechaNacimiento": "1998-05-15",
+    "genero": "female",
+    "categoriaFavorita": "accessories",
+    "plataformaPrincipal": "playstation",
+    "gamerTag": "AnaGamer",
+    "bio": "Fan de los RPG y los juegos de aventura.",
+    "newsletter": false,
+    "notificaciones": true
+  }
+]
