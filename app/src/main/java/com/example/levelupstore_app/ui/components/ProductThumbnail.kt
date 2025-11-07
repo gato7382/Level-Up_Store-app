@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/components/ProductThumbnail.kt
 package com.example.levelupstore_app.ui.components
 
 import androidx.compose.foundation.BorderStroke
@@ -18,35 +17,26 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.levelupstore_app.R
 
-/**
- * Molécula para una miniatura (thumbnail) en la galería de producto.
- * Basado en .product-thumbnail
- *
- * @param imageUrl La ruta de la imagen (ej. "/imgs/ps51.webp")
- * @param isActive Si esta miniatura está seleccionada.
- * @param onClick Lambda que se ejecuta al presionar.
- */
 @Composable
 fun ProductThumbnail(
     imageUrl: String,
     isActive: Boolean,
     onClick: () -> Unit
 ) {
-    val GreenGlow = Color(0xFF39FF14) // Color de borde activo
+    val GreenGlow = Color(0xFF39FF14)
     val CardBackground = Color(0xFF141414)
     val CardBorder = if (isActive) GreenGlow else Color.Transparent
 
     Card(
         modifier = Modifier
             .padding(4.dp)
-            .aspectRatio(1f) // Cuadrada
+            .aspectRatio(1f)
             .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = CardBackground),
-        border = BorderStroke(2.dp, CardBorder) // Borde verde si está activa
+        border = BorderStroke(2.dp, CardBorder)
     ) {
         Image(
             painter = rememberAsyncImagePainter(
-                // Usamos la misma lógica corregida para la ruta
                 model = "file:///android_asset/${imageUrl.removePrefix("/")}",
                 placeholder = painterResource(id = R.drawable.logo_level_up)
             ),

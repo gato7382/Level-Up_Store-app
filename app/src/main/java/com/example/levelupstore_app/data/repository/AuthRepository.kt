@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/data/repository/AuthRepository.kt
 package com.example.levelupstore_app.data.repository
 
 import android.content.Context
@@ -41,30 +40,24 @@ class AuthRepository(
         return foundUser
     }
 
-    /**
-     * Registra un nuevo usuario (¡ACTUALIZADO!)
-     * Ahora recibe 'birthDate' en lugar de 'edad'.
-     */
     suspend fun register(nombre: String, birthDate: String, email: String, clave: String): Boolean {
-        // 1. Verifica si el email ya existe
         val baseUsers = getBaseUsers()
         val newUsers = userPreferences.newUsersFlow.first()
         val emailExists = (baseUsers + newUsers).any { it.email == email }
 
         if (emailExists) {
-            return false // Falla: el email ya está en uso
+            return false
         }
 
-        // 2. Si no existe, crea y guarda el nuevo usuario
         val newUser = User(
             email = email,
             clave = clave,
             nombre = nombre,
-            fechaNacimiento = birthDate // <-- CAMBIADO (antes era 'edad')
+            fechaNacimiento = birthDate
         )
 
-        userPreferences.addNewUser(newUser) // Lo añade a 'usuariosNuevos'
-        userPreferences.saveActiveUser(newUser) // Lo define como 'usuarioActivo'
+        userPreferences.addNewUser(newUser)
+        userPreferences.saveActiveUser(newUser)
         return true
     }
 

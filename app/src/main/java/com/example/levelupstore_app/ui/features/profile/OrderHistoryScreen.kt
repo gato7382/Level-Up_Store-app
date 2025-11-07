@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/features/profile/OrderHistoryScreen.kt
 package com.example.levelupstore_app.ui.features.profile
 
 import androidx.compose.foundation.Image
@@ -21,13 +20,12 @@ import com.example.levelupstore_app.ui.components.SectionTitle
 import java.text.NumberFormat
 import java.util.Locale
 
-// Formateador de moneda
 private val chileLocale = Locale("es", "CL")
 private val currencyFormatter = NumberFormat.getCurrencyInstance(chileLocale)
 
 @Composable
 fun OrderHistoryScreen(
-    orders: List<Order> // Recibe la lista de pedidos del ViewModel
+    orders: List<Order>
 ) {
     Column(
         modifier = Modifier
@@ -47,7 +45,7 @@ fun OrderHistoryScreen(
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(orders.sortedByDescending { it.date }) { order -> // Ordena por fecha
+                items(orders.sortedByDescending { it.date }) { order ->
                     OrderCard(order = order)
                 }
             }
@@ -55,7 +53,6 @@ fun OrderHistoryScreen(
     }
 }
 
-// Molécula interna para mostrar UNA tarjeta de pedido
 @Composable
 private fun OrderCard(order: Order) {
     Card(
@@ -63,7 +60,6 @@ private fun OrderCard(order: Order) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
     ) {
         Column {
-            // Cabecera del Pedido (Fecha y Total)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -71,7 +67,7 @@ private fun OrderCard(order: Order) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Pedido: ${order.date}", // Muestra la fecha
+                    text = "Pedido: ${order.date}",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray
                 )
@@ -83,7 +79,6 @@ private fun OrderCard(order: Order) {
             }
             Divider()
 
-            // Lista de Items en el Pedido
             Column(modifier = Modifier.padding(16.dp)) {
                 order.items.forEach { item ->
                     Row(

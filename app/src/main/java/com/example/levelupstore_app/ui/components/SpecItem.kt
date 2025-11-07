@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/components/SpecItem.kt
 package com.example.levelupstore_app.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
@@ -15,32 +14,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-/**
- * Molécula para un solo ítem en la lista de especificaciones.
- * Basado en .spec-item
- *
- * @param name El nombre de la especificación (ej. "Fabricante")
- * @param value El valor (ej. "Sony")
- */
 @Composable
 fun SpecItem(name: String, value: String) {
     Column (modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween // Alinea a los extremos
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Nombre (ej. "Fabricante")
             Text(
                 text = name,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray, // Color de .spec-name
+                color = Color.Gray,
                 fontWeight = FontWeight.Bold
             )
-            // Valor (ej. "Sony")
             Text(
                 text = value,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.White, // Color de .spec-value
+                color = Color.White,
                 fontWeight = FontWeight.SemiBold
             )
         }

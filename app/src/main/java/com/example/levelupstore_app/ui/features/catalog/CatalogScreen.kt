@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/features/catalog/CatalogScreen.kt
 package com.example.levelupstore_app.ui.features.catalog
 
 import android.widget.Toast
@@ -33,23 +32,18 @@ import com.example.levelupstore_app.ui.utils.AppViewModelFactory
 @Composable
 fun CatalogScreen(
     navController: NavController,
-    // 1. Pedimos AMBOS ViewModels usando nuestra Fábrica
     catalogViewModel: CatalogViewModel = viewModel(factory = AppViewModelFactory),
     cartViewModel: CartViewModel = viewModel(factory = AppViewModelFactory)
 ) {
-    // 2. Observamos el estado del Catálogo
     val uiState by catalogViewModel.uiState.collectAsState()
-    val context = LocalContext.current // Para mostrar notificaciones (Toast)
+    val context = LocalContext.current
 
-    // --- RENDERIZADO ---
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // --- Estado de Carga ---
         if (uiState.isLoading) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
 
-        // --- Estado de Error ---
         if (uiState.errorMessage != null) {
             Text(
                 text = uiState.errorMessage!!,
@@ -58,26 +52,20 @@ fun CatalogScreen(
             )
         }
 
-        // --- Estado de Éxito ---
-        // Usamos LazyColumn para la página entera sea "scrolleable"
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp)
         ) {
-            // Título de la página
             item {
                 Text(
                     text = "Catálogo de Productos",
                     style = MaterialTheme.typography.headlineLarge,
                     modifier = Modifier.padding(bottom = 16.dp)
-                    // fontFamily = OrbitronFontFamily // (Si la configuras)
                 )
             }
 
-            // 3. Itera sobre el Mapa de productos agrupados
             uiState.productsByCategory.forEach { (categoryName, productsInCategory) ->
 
-                // 4. Renderiza el Título de la Categoría
                 item {
                     SectionTitle(
                         title = categoryName,
@@ -85,29 +73,22 @@ fun CatalogScreen(
                     )
                 }
 
-                // 5. Renderiza la Cuadrícula de Productos
-                // (Usamos un LazyVerticalGrid DENTRO de un item. No es lo más eficiente
-                // pero es la forma más simple de tener una lista mixta)
                 item {
                     LazyVerticalGrid(
-                        columns = GridCells.Adaptive(minSize = 160.dp), // 2 columnas en móvil
-                        modifier = Modifier.heightIn(max = 2000.dp), // Altura máxima
+                        columns = GridCells.Adaptive(minSize = 160.dp),
+                        modifier = Modifier.heightIn(max = 2000.dp),
                         contentPadding = PaddingValues(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(productsInCategory) { product ->
-                            // 6. Renderiza la Molécula ProductCard
                             ProductCard(
                                 product = product,
                                 onCardClick = {
-                                    // Navega a la pantalla de detalle (crearemos esta ruta)
                                     navController.navigate("product_detail/${product.id}")
                                 },
                                 onAddToCartClick = {
-                                    // 7. Llama al "Cerebro" del Carrito
                                     cartViewModel.addToCart(product)
-                                    // Muestra una notificación simple
                                     Toast.makeText(context, "${product.name} añadido al carrito", Toast.LENGTH_SHORT).show()
                                 }
                             )

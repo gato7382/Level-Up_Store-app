@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/components/ReviewItem.kt
 package com.example.levelupstore_app.ui.components
 
 import androidx.compose.foundation.layout.*
@@ -19,19 +18,16 @@ import com.example.levelupstore_app.data.model.Review
 
 @Composable
 fun ReviewItem(review: Review, modifier: Modifier = Modifier) {
-    // --- Definición de colores ---
-    val StarColor = Color(0xFFFFD700) // Amarillo/Dorado
-    val CardBackground = Color(0xFF1a1a1a) // Fondo de .review-item
-    val TextGray = Color(0xFFD3D3D3) // Color de .review-text
-    val NeonBlue = Color(0xFF1E90FF) // Color de .reviewer-name
-    // --- Fin de definición de colores ---
+    val StarColor = Color(0xFFFFD700)
+    val CardBackground = Color(0xFF1a1a1a)
+    val TextGray = Color(0xFFD3D3D3)
+    val NeonBlue = Color(0xFF1E90FF)
 
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = CardBackground)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Header (Nombre y Fecha)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -41,7 +37,6 @@ fun ReviewItem(review: Review, modifier: Modifier = Modifier) {
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = NeonBlue
-                    // fontFamily = OrbitronFontFamily // (Si la configuras)
                 )
                 Text(
                     text = review.date,
@@ -51,7 +46,6 @@ fun ReviewItem(review: Review, modifier: Modifier = Modifier) {
             }
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Estrellas (Rating)
             Row {
                 (1..5).forEach { index ->
                     Icon(
@@ -64,7 +58,6 @@ fun ReviewItem(review: Review, modifier: Modifier = Modifier) {
             }
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Texto de la reseña
             Text(
                 text = review.text,
                 style = MaterialTheme.typography.bodyMedium,

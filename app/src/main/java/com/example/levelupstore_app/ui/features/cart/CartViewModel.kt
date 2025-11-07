@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/features/cart/CartViewModel.kt
 package com.example.levelupstore_app.ui.features.cart
 
 import androidx.lifecycle.ViewModel
@@ -22,9 +21,6 @@ import java.util.Date
 import java.util.Locale
 import kotlinx.coroutines.flow.SharingStarted
 
-/**
- * Estado de la UI para los DATOS del Carrito.
- */
 data class CartDataState(
     val items: List<CartItem> = emptyList(),
     val totalItems: Int = 0,
@@ -32,31 +28,24 @@ data class CartDataState(
     val discountApplied: Boolean = false
 )
 
-/**
- * El "Cerebro" (ViewModel) global del Carrito.
- * Reemplaza cart.js
- */
 class CartViewModel(
     private val cartRepository: CartRepository,
     private val authRepository: AuthRepository,
     private val orderRepository: OrderRepository
 ) : ViewModel() {
 
-    // --- ESTADO 1: Los DATOS del carrito (calculado) ---
     val cartDataState: StateFlow<CartDataState> =
         combine(
-            cartRepository.getCartItemsStream(), // Stream 1: Lista de items
-            authRepository.getActiveUserStream() // Stream 2: Usuario activo
+            cartRepository.getCartItemsStream(),
+            authRepository.getActiveUserStream()
         ) { items, user ->
-            // --- Esta lógica se ejecuta cada vez que los items O el usuario cambian ---
 
             val totalItems = items.sumOf { it.quantity }
             var totalPrice = items.sumOf { it.product.price * it.quantity }
             var discountApplied = false
 
-            // Aplica descuento Duoc si el email coincide
             if (user?.email?.endsWith("@duocuc.cl") == true) {
-                totalPrice *= 0.8 // 20% de descuento
+                totalPrice *= 0.8
                 discountApplied = true
             }
 
@@ -66,21 +55,19 @@ class CartViewModel(
                 totalPrice = totalPrice,
                 discountApplied = discountApplied
             )
-        }.stateIn( // Convierte el Flow en un StateFlow (estado) que la UI puede observar
+        }.stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000), // Inicia cuando la UI observa
-            initialValue = CartDataState() // Estado inicial mientras carga
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = CartDataState()
         )
 
-    // --- ESTADO 2: La UI del carrito (si está abierto) ---
     private val _isCartOpen = MutableStateFlow(false)
     val isCartOpen: StateFlow<Boolean> = _isCartOpen.asStateFlow()
 
     fun toggleCart() {
-        _isCartOpen.update { !it } // Invierte el valor (abierto/cerrado)
+        _isCartOpen.update { !it }
     }
 
-    // --- FUNCIONES (Eventos que la UI llamará) ---
 
     fun addToCart(product: Product) {
         viewModelScope.launch {
@@ -101,7 +88,7 @@ class CartViewModel(
     }
 
     suspend fun checkout(): String {
-        val currentState = cartDataState.value // Usa el estado de datos
+        val currentState = cartDataState.value
         val user = authRepository.getActiveUserStream().first()
 
         if (user == null) {
@@ -119,7 +106,7 @@ class CartViewModel(
 
         orderRepository.addOrder(user.email, newOrder)
         cartRepository.clearCart()
-        _isCartOpen.update { false } // Cierra el carrito después del checkout
+        _isCartOpen.update { false }
 
         return "¡Pedido realizado con éxito!"
     }

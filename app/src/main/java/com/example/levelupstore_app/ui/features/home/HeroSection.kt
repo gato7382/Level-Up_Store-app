@@ -15,75 +15,63 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.levelupstore_app.R // ¡Importante para acceder a res/drawable!
+import com.example.levelupstore_app.R
 import com.example.levelupstore_app.ui.components.AppButton
 
 @Composable
 fun HeroSection(navController: NavController) {
 
-    // --- Definición de colores (puedes moverlos a ui/theme/Color.kt) ---
-    val GreenGlow = Color(0xFF39FF14) // Color verde de tu CSS
-    // --- Fin de definición de colores ---
+    val GreenGlow = Color(0xFF39FF14)
 
-    // Box es como un <div> con position: relative
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(400.dp), // Altura fija para el "Hero"
-        contentAlignment = Alignment.Center // Centra el contenido
+            .height(400.dp),
+        contentAlignment = Alignment.Center
     ) {
-        // 1. Imagen de Fondo
         Image(
-            // ¡Aquí usa la imagen de res/drawable!
             painter = painterResource(id = R.drawable.background1),
             contentDescription = "Fondo Hero",
             modifier = Modifier
                 .fillMaxSize()
-                .alpha(0.3f), // Opacidad (como en tu CSS)
-            contentScale = ContentScale.Crop // Rellena el espacio
+                .alpha(0.3f),
+            contentScale = ContentScale.Crop
         )
 
-        // 2. Contenido (el div .hero-content)
         Column(
             modifier = Modifier.padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Título (el h1)
             Text(
                 text = "¡Desafía tus límites con Level-Up Gamer!",
-                style = MaterialTheme.typography.headlineMedium, // Tamaño de fuente
+                style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center,
                 color = Color.White,
                 fontWeight = FontWeight.Bold
-                // fontFamily = OrbitronFontFamily // (Si configuras la fuente Orbitron)
             )
 
-            // Subtítulo (el span verde)
             Text(
                 text = "El Siguiente Nivel Es Solo El Comienzo",
                 style = MaterialTheme.typography.headlineMedium,
-                color = GreenGlow, // Tu span verde
+                color = GreenGlow,
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold
-                // fontFamily = OrbitronFontFamily
             )
 
-            Spacer(modifier = Modifier.height(16.dp)) // Espaciador
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Párrafo (el <p>)
             Text(
                 text = "Encuentra el equipamiento gamer que necesitas para dominar. Calidad, rendimiento y estilo en un solo lugar.",
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
-                color = Color.White.copy(alpha = 0.8f) // Color de texto atenuado
+                color = Color.White.copy(alpha = 0.8f)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Botón (el .cta-button)
             AppButton(
-                onClick = { navController.navigate("catalog") }, // Asumimos ruta "catalog"
+                onClick = { navController.navigate("catalog") },
                 text = "¡Explora el Catálogo!"
             )
         }

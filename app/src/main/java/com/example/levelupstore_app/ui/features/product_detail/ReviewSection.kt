@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/features/product_detail/ReviewSection.kt
 package com.example.levelupstore_app.ui.features.product_detail
 
 import androidx.compose.foundation.layout.Column
@@ -23,17 +22,14 @@ fun ReviewSection(
             .fillMaxWidth()
             .padding(vertical = 16.dp)
     ) {
-        // 1. Título
         SectionTitle(title = "Reseñas de Clientes (${reviews.size})")
 
-        // 2. Formulario para enviar
         ReviewForm(
             navController = navController,
             isLoggedIn = isLoggedIn,
             onReviewSubmit = onReviewSubmit
         )
 
-        // 3. Lista de reseñas
         ReviewList(reviews = reviews)
     }
 }

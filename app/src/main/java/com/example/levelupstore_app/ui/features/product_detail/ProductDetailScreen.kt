@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/features/product_detail/ProductDetailScreen.kt
 package com.example.levelupstore_app.ui.features.product_detail
 
 import android.widget.Toast
@@ -20,70 +19,58 @@ import com.example.levelupstore_app.ui.utils.AppViewModelFactory
 @Composable
 fun ProductDetailScreen(
     navController: NavController,
-    // Pedimos ambos "cerebros": el de esta página y el del carrito
     detailViewModel: ProductDetailViewModel = viewModel(factory = AppViewModelFactory),
     cartViewModel: CartViewModel = viewModel(factory = AppViewModelFactory)
 ) {
-    // Observamos el estado de la página
     val uiState by detailViewModel.uiState.collectAsState()
-    val context = LocalContext.current // Para notificaciones
+    val context = LocalContext.current
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // --- ESTADO DE CARGA ---
         if (uiState.isLoading) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            return@Box // Sale temprano si está cargando
+            return@Box
         }
 
-        // --- ESTADO DE ERROR ---
         if (uiState.errorMessage != null) {
             Text(
                 text = uiState.errorMessage!!,
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.align(Alignment.Center)
             )
-            return@Box // Sale temprano si hay error
+            return@Box
         }
 
-        // --- ESTADO DE ÉXITO (Producto cargado) ---
         val product = uiState.product
         if (product != null) {
-            // Usamos LazyColumn para que toda la página sea "scrolleable"
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp)
             ) {
-                // 1. Organismo: Galería de Imágenes
                 item {
                     ProductGallery(images = product.images)
                 }
 
-                // 2. Organismo: Información del Producto
                 item {
                     ProductInfo(
                         product = product,
                         onAddToCartClick = {
-                            // Llama al "cerebro" del carrito
                             cartViewModel.addToCart(product)
                             Toast.makeText(context, "${product.name} añadido", Toast.LENGTH_SHORT).show()
                         }
                     )
                 }
 
-                // 3. Organismo: Especificaciones
                 item {
                     ProductSpecs(specs = product.specs)
                 }
 
-                // 4. Organismo: Sección de Reseñas
                 item {
                     ReviewSection(
                         navController = navController,
                         reviews = uiState.reviews,
                         isLoggedIn = uiState.isLoggedIn,
                         onReviewSubmit = { text, rating ->
-                            // Llama al "cerebro" de esta página
                             detailViewModel.addReview(text, rating)
                             Toast.makeText(context, "Reseña enviada", Toast.LENGTH_SHORT).show()
                         }

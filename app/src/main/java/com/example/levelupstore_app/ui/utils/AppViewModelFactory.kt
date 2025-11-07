@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/utils/AppViewModelFactory.kt
 package com.example.levelupstore_app.ui.utils
 
 import androidx.lifecycle.AbstractSavedStateViewModelFactory
@@ -12,11 +11,8 @@ import com.example.levelupstore_app.ui.features.auth.AuthViewModel
 import com.example.levelupstore_app.ui.features.cart.CartViewModel
 import com.example.levelupstore_app.ui.features.catalog.CatalogViewModel
 import com.example.levelupstore_app.ui.features.product_detail.ProductDetailViewModel
-import com.example.levelupstore_app.ui.features.profile.ProfileViewModel // <-- 1. IMPORTA EL NUEVO VM
+import com.example.levelupstore_app.ui.features.profile.ProfileViewModel
 
-/**
- * Fábrica (Factory) que sabe cómo crear TODOS nuestros ViewModels.
- */
 object AppViewModelFactory : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(
@@ -26,7 +22,6 @@ object AppViewModelFactory : ViewModelProvider.Factory {
         val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]) as LevelUpApp
         val savedStateHandle = extras.createSavedStateHandle()
 
-        // Devolvemos una instancia de nuestra fábrica interna
         return VmFactory(application, savedStateHandle).create(modelClass)
     }
 }
@@ -63,15 +58,12 @@ private class VmFactory(
             ) as T
         }
 
-        // --- 2. ¡CÓDIGO AÑADIDO! ---
         else if (modelClass.isAssignableFrom(ProfileViewModel::class.java)) {
-            // Si piden un ProfileViewModel...
             return ProfileViewModel(
                 app.authRepository,
                 app.orderRepository
             ) as T
         }
-        // --- FIN DEL CÓDIGO AÑADIDO ---
 
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }

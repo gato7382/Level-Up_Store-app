@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/features/auth/AuthViewModel.kt
 package com.example.levelupstore_app.ui.features.auth
 
 import android.util.Patterns
@@ -15,14 +14,14 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException // <-- Este es el que teníamos
-import java.time.DateTimeException         // <-- ¡AÑADIMOS ESTE!
+import java.time.format.DateTimeParseException
+import java.time.DateTimeException
 
 data class AuthUiState(
     val email: String = "",
     val password: String = "",
     val name: String = "",
-    val birthDate: String = "", // Guarda solo los 8 dígitos (DDMMYYYY)
+    val birthDate: String = "",
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val loginSuccess: Boolean = false,
@@ -38,7 +37,6 @@ class AuthViewModel(
 
     val sessionState: Flow<User?> = authRepository.getActiveUserStream()
 
-    // --- EVENTOS (Funciones que la UI llamará) ---
     fun onEmailChange(email: String) {
         _uiState.update { it.copy(email = email, errorMessage = null) }
     }
@@ -75,7 +73,7 @@ class AuthViewModel(
             return
         }
 
-        val birthDateString = uiState.value.birthDate // "27101995"
+        val birthDateString = uiState.value.birthDate
 
         if (birthDateString.length != 8) {
             _uiState.update { it.copy(isLoading = false, errorMessage = "Formato de fecha inválido. Usa DD-MM-YYYY.") }
@@ -83,9 +81,8 @@ class AuthViewModel(
         }
 
         var age: Int
-        var dateToSave: String // Formato AAAA-MM-DD para guardar
+        var dateToSave: String
 
-        // --- ¡BLOQUE CATCH CORREGIDO! ---
         try {
             val inputFormatter = DateTimeFormatter.ofPattern("ddMMuuuu")
             val outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
@@ -101,11 +98,10 @@ class AuthViewModel(
 
             dateToSave = birthDate.format(outputFormatter)
 
-        } catch (e: DateTimeException) { // <-- ¡CAMBIO! Atrapa DateTimeException (más general)
+        } catch (e: DateTimeException) {
             _uiState.update { it.copy(isLoading = false, errorMessage = "Fecha inválida (ej: día 32 o mes 13).") }
             return
         }
-        // --- FIN DEL BLOQUE CATCH ---
 
         viewModelScope.launch {
             val success = authRepository.register(

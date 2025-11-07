@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/features/product_detail/ReviewList.kt
 package com.example.levelupstore_app.ui.features.product_detail
 
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +16,7 @@ import com.example.levelupstore_app.ui.components.ReviewItem
 fun ReviewList(reviews: List<Review>) {
     Column(
         modifier = Modifier.padding(top = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp) // Espacio entre reseñas
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         if (reviews.isEmpty()) {
             Text(
@@ -25,7 +24,6 @@ fun ReviewList(reviews: List<Review>) {
                 modifier = Modifier.padding(vertical = 32.dp)
             )
         } else {
-            // Itera sobre la lista y muestra una molécula ReviewItem por cada una
             reviews.forEach { review ->
                 ReviewItem(review = review)
             }

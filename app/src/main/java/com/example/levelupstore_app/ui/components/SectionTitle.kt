@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/components/SectionTitle.kt
 package com.example.levelupstore_app.ui.components
 
 import androidx.compose.foundation.layout.Column
@@ -14,23 +13,18 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun SectionTitle(title: String, modifier: Modifier = Modifier) {
-    // --- Definición de colores (puedes moverlos a ui/theme/Color.kt) ---
-    val GreenGlow = Color(0xFF39FF14) // Color verde de tu CSS
-    // --- Fin de definición de colores ---
+    val GreenGlow = Color(0xFF39FF14)
 
-    // Basado en tu .section-title de productos.css
     Column(modifier = modifier) {
         Text(
             text = title,
-            style = MaterialTheme.typography.headlineSmall, // Tamaño de fuente
-            color = GreenGlow, // Color verde característico
+            style = MaterialTheme.typography.headlineSmall,
+            color = GreenGlow,
             fontWeight = FontWeight.Bold
-            // fontFamily = OrbitronFontFamily // (Si configuras la fuente Orbitron en Type.kt)
         )
-        // Línea divisoria de abajo
         Divider(
             modifier = Modifier.padding(top = 8.dp),
-            color = GreenGlow.copy(alpha = 0.3f), // Línea con opacidad
+            color = GreenGlow.copy(alpha = 0.3f),
             thickness = 2.dp
         )
     }

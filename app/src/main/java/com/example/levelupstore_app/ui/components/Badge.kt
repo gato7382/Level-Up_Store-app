@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/components/Badge.kt
 package com.example.levelupstore_app.ui.components
 
 import androidx.compose.foundation.background
@@ -17,24 +16,21 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun Badge(text: String, modifier: Modifier = Modifier) {
-    // --- Definición de colores (puedes moverlos a ui/theme/Color.kt) ---
-    val NeonBlue = Color(0xFF1E90FF) // Color azul de tu CSS
-    val GreenGlow = Color(0xFF39FF14) // Color verde de tu CSS
-    // --- Fin de definición de colores ---
+    val NeonBlue = Color(0xFF1E90FF)
+    val GreenGlow = Color(0xFF39FF14)
 
-    // Basado en tu .level-up-badge de inicio.css
     val gradientBrush = Brush.horizontalGradient(
         colors = listOf(NeonBlue, GreenGlow)
     )
     Box(
         modifier = modifier
-            .clip(CircleShape) // Forma de píldora
+            .clip(CircleShape)
             .background(gradientBrush)
-            .padding(horizontal = 16.dp, vertical = 8.dp) // Padding interno
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Text(
             text = text,
-            color = Color.Black, // Texto negro
+            color = Color.Black,
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold
         )

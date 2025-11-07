@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/components/CartItemRow.kt
 package com.example.levelupstore_app.ui.components
 
 import androidx.compose.foundation.Image
@@ -21,13 +20,9 @@ import com.example.levelupstore_app.data.model.CartItem
 import java.text.NumberFormat
 import java.util.Locale
 
-// Formateador de moneda
 private val chileLocale = Locale("es", "CL")
 private val currencyFormatter = NumberFormat.getCurrencyInstance(chileLocale)
 
-/**
- * Molécula que muestra un solo ítem dentro del dropdown/sheet del carrito.
- */
 @Composable
 fun CartItemRow(
     item: CartItem,
@@ -41,7 +36,6 @@ fun CartItemRow(
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Imagen
         Image(
             painter = rememberAsyncImagePainter(
                 model = "file:///android_asset/${item.product.images.firstOrNull()?.removePrefix("/")}",
@@ -54,7 +48,6 @@ fun CartItemRow(
             contentScale = ContentScale.Crop
         )
 
-        // Nombre y Precio
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = item.product.name,
@@ -67,7 +60,6 @@ fun CartItemRow(
             )
         }
 
-        // Botones de Cantidad
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onDecrease, modifier = Modifier.size(24.dp)) {
                 Icon(Icons.Default.Remove, contentDescription = "Quitar uno")
@@ -82,7 +74,6 @@ fun CartItemRow(
             }
         }
 
-        // Botón de Eliminar
         IconButton(onClick = onRemove, modifier = Modifier.padding(start = 8.dp)) {
             Icon(Icons.Default.Close, contentDescription = "Eliminar del carrito")
         }

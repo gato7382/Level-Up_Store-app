@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/features/common/CartDropdown.kt
 package com.example.levelupstore_app.ui.features.common
 
 import android.widget.Toast
@@ -21,41 +20,31 @@ import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
-// Formateador de moneda
 private val chileLocale = Locale("es", "CL")
 private val currencyFormatter = NumberFormat.getCurrencyInstance(chileLocale)
 
-/**
- * Organismo que muestra el contenido del carrito en un panel deslizable.
- * Reemplaza .cart-dropdown
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartDropdown(
     cartViewModel: CartViewModel = viewModel(factory = AppViewModelFactory)
 ) {
-    // Observa el estado de los datos del carrito
     val cartDataState by cartViewModel.cartDataState.collectAsState()
-    // Observa el estado de si el panel está abierto
     val isCartOpen by cartViewModel.isCartOpen.collectAsState()
 
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // 1. Lógica para manejar el estado del panel
     if (isCartOpen) {
         ModalBottomSheet(
-            onDismissRequest = { cartViewModel.toggleCart() }, // Cierra al tocar fuera
+            onDismissRequest = { cartViewModel.toggleCart() },
             sheetState = sheetState
         ) {
-            // 2. Contenido del panel
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                // Título
                 Text(
                     text = "Mi Carrito 🛒",
                     style = MaterialTheme.typography.headlineSmall,
@@ -63,7 +52,6 @@ fun CartDropdown(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // 3. Lógica de Carrito Vacío o Lleno
                 if (cartDataState.items.isEmpty()) {
                     Box(
                         modifier = Modifier
@@ -74,11 +62,10 @@ fun CartDropdown(
                         Text(text = "Tu carrito está vacío")
                     }
                 } else {
-                    // 4. Lista de Items (Moléculas)
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f) // Ocupa el espacio disponible
+                            .weight(1f)
                     ) {
                         items(cartDataState.items) { item ->
                             CartItemRow(
@@ -91,7 +78,6 @@ fun CartDropdown(
                         }
                     }
 
-                    // 5. Total y Descuento
                     Spacer(modifier = Modifier.height(16.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -117,12 +103,11 @@ fun CartDropdown(
                         )
                     }
 
-                    // 6. Botón de Checkout
                     Spacer(modifier = Modifier.height(16.dp))
                     AppButton(
                         onClick = {
                             scope.launch {
-                                val message = cartViewModel.checkout() // Llama a la función suspend
+                                val message = cartViewModel.checkout()
                                 Toast.makeText(context, message, Toast.LENGTH_LONG).show()
                             }
                         },

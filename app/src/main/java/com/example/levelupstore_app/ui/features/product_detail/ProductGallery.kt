@@ -1,4 +1,3 @@
-// Ruta: com/example.levelupstore_app/ui/features/product_detail/ProductGallery.kt
 package com.example.levelupstore_app.ui.features.product_detail
 
 import androidx.compose.foundation.Image
@@ -27,23 +26,11 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.levelupstore_app.R
 import com.example.levelupstore_app.ui.components.ProductThumbnail
 
-/**
- * Organismo que muestra la galería de imágenes del producto.
- * Reemplaza la lógica de images.js y .product-gallery
- *
- * @param images Una lista de strings con las rutas de las imágenes (ej. ["/imgs/ps51.webp", ...])
- */
 @Composable
 fun ProductGallery(images: List<String>) {
 
-    // 1. ESTADO (STATE)
-    // 'remember' le da memoria al componente, 'mutableStateOf' lo hace observable.
-    // Esto reemplaza tu 'this.currentImageIndex' de JavaScript.
-    // Guardamos el índice de la imagen seleccionada.
     var selectedImageIndex by remember { mutableStateOf(0) }
 
-    // 2. LÓGICA
-    // Aseguramos que el índice sea válido y obtenemos la URL de la imagen principal.
     val mainImageUrl = images.getOrNull(selectedImageIndex) ?: ""
 
     Column(
@@ -51,8 +38,6 @@ fun ProductGallery(images: List<String>) {
             .fillMaxWidth()
             .padding(vertical = 8.dp)
     ) {
-        // 3. IMAGEN PRINCIPAL
-        // (Basado en .product-main-image)
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -72,20 +57,13 @@ fun ProductGallery(images: List<String>) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // 4. LISTA DE MINIATURAS (THUMBNAILS)
-        // (Basado en .product-thumbnails)
-        // LazyRow es una lista horizontal "scrollable"
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             itemsIndexed(images) { index, imageUrl ->
-                // Renderiza nuestra molécula ProductThumbnail
                 ProductThumbnail(
                     imageUrl = imageUrl,
-                    // La miniatura está "activa" si su índice es el seleccionado
                     isActive = (index == selectedImageIndex),
-                    // Al hacer clic, actualiza el estado (el índice)
-                    // Esto reemplaza tu 'changeImage(index)'
                     onClick = { selectedImageIndex = index }
                 )
             }

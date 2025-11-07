@@ -1,10 +1,9 @@
-// Ruta: com/example/levelupstore_app/ui/features/auth/RegisterScreen.kt
 package com.example.levelupstore_app.ui.features.auth
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState // <-- ¡NUEVO IMPORT!
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll // <-- ¡NUEVO IMPORT!
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,12 +34,11 @@ fun RegisterScreen(
         }
     }
 
-    // Añadimos verticalScroll para que el teclado no tape los campos
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(32.dp)
-            .verticalScroll(rememberScrollState()), // <-- ¡AÑADIDO!
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -50,7 +48,6 @@ fun RegisterScreen(
             modifier = Modifier.padding(bottom = 32.dp)
         )
 
-        // --- CAMPO DE "NOMBRE" ---
         OutlinedTextField(
             value = uiState.name,
             onValueChange = { authViewModel.onNameChange(it) },
@@ -61,12 +58,9 @@ fun RegisterScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- CAMPO DE "FECHA DE NACIMIENTO" (¡ACTUALIZADO!) ---
         OutlinedTextField(
-            value = uiState.birthDate, // El valor sin formato (ej. "27101995")
+            value = uiState.birthDate,
             onValueChange = { newText ->
-                // Lógica de 'onValueChange' simplificada:
-                // Solo acepta dígitos y un máximo de 8 caracteres.
                 if (newText.length <= 8 && newText.all { it.isDigit() }) {
                     authViewModel.onBirthDateChange(newText)
                 }
@@ -77,14 +71,11 @@ fun RegisterScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             isError = uiState.errorMessage != null || localError != null,
             singleLine = true,
-            // ¡El VisualTransformation se encarga de AÑADIR los guiones!
             visualTransformation = DateVisualTransformation()
         )
-        // --- FIN DEL CAMPO ACTUALIZADO ---
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- CAMPO DE "EMAIL" ---
         OutlinedTextField(
             value = uiState.email,
             onValueChange = { authViewModel.onEmailChange(it) },
@@ -96,7 +87,6 @@ fun RegisterScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- CAMPO DE "CONTRASEÑA" ---
         OutlinedTextField(
             value = uiState.password,
             onValueChange = { authViewModel.onPasswordChange(it) },
@@ -108,7 +98,6 @@ fun RegisterScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- CAMPO DE "CONFIRMAR CONTRASEÑA" ---
         OutlinedTextField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it; localError = null },
@@ -120,7 +109,6 @@ fun RegisterScreen(
         )
         Spacer(modifier = Modifier.height(24.dp))
 
-        // --- MENSAJES DE ERROR ---
         val errorMessage = localError ?: uiState.errorMessage
         if (errorMessage != null) {
             Text(
@@ -130,7 +118,6 @@ fun RegisterScreen(
             )
         }
 
-        // --- BOTÓN DE REGISTRO ---
         Button(
             onClick = {
                 if (uiState.password != confirmPassword) {

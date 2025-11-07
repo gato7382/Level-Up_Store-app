@@ -43,31 +43,16 @@ android {
 }
 
 dependencies {
-    // --- 1. JETPACK COMPOSE (El "React" de Android - UI) ---
     implementation(platform("androidx.compose:compose-bom:2024.05.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-
-    // --- ¡¡AÑADE ESTA LÍNEA AQUÍ!! ---
-    // Esta librería contiene los iconos "Outlined", "Rounded", y "Sharp"
     implementation("androidx.compose.material:material-icons-extended")
-    // --- FIN DE LÍNEA AÑADIDA ---
-
-    // --- 2. NAVIGATION COMPOSE (El "React Router" - Navegación) ---
     implementation("androidx.navigation:navigation-compose:2.7.7")
-
-    // --- 3. VIEWMODELS (El "Context" - Cerebros) ---
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
-
-    // --- 4. DATASTORE (El "LocalStorage" - Guardar Sesión/Carrito) ---
     implementation("androidx.datastore:datastore-preferences:1.1.1")
-
-    // --- 5. KOTLINX SERIALIZATION (El "Lector de JSON") ---
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-
-    // --- 6. COIL (Cargador de Imágenes) ---
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

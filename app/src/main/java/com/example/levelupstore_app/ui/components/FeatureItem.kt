@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/components/FeatureItem.kt
 package com.example.levelupstore_app.ui.components
 
 import androidx.compose.foundation.layout.Column
@@ -19,51 +18,43 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun FeatureItem(
-    icon: String, // Usamos el emoji como en tu inicio.html
+    icon: String,
     title: String,
     description: String,
     modifier: Modifier = Modifier
 ) {
-    // --- Definición de colores (puedes moverlos a ui/theme/Color.kt) ---
-    val NeonBlue = Color(0xFF1E90FF) // Color azul de tu CSS
-    // --- Fin de definición de colores ---
+    val NeonBlue = Color(0xFF1E90FF)
 
-    // Basado en tu .feature-card de inicio.css
     Card(
         modifier = modifier
-            .fillMaxWidth() // Ocupa el ancho disponible en la cuadrícula
+            .fillMaxWidth()
             .padding(8.dp),
         colors = CardDefaults.cardColors(
-            // Fondo oscuro semi-transparente
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
         )
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally // Centra el contenido
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Icono (emoji)
             Text(
                 text = icon,
-                style = MaterialTheme.typography.displaySmall // Tamaño grande para el emoji
+                style = MaterialTheme.typography.displaySmall
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Título
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
-                color = NeonBlue, // Color azul
-                // fontFamily = OrbitronFontFamily, // (Si la configuras)
+                color = NeonBlue,
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Descripción
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center, // Texto centrado
-                color = Color.White.copy(alpha = 0.8f) // Color de texto atenuado
+                textAlign = TextAlign.Center,
+                color = Color.White.copy(alpha = 0.8f)
             )
         }
     }

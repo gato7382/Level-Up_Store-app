@@ -15,9 +15,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-// Asegúrate de tener estos colores definidos en ui/theme/Color.kt
-// import com.example.levelupstore_app.ui.theme.GreenGlow
-// import com.example.levelupstore_app.ui.theme.NeonBlue
 
 @Composable
 fun AppButton(
@@ -25,12 +22,9 @@ fun AppButton(
     text: String,
     modifier: Modifier = Modifier
 ) {
-    // --- Definición de colores (puedes moverlos a Color.kt) ---
-    val NeonBlue = Color(0xFF1E90FF) // Color azul de tu CSS
-    val GreenGlow = Color(0xFF39FF14) // Color verde de tu CSS
-    // --- Fin de definición de colores ---
+    val NeonBlue = Color(0xFF1E90FF)
+    val GreenGlow = Color(0xFF39FF14)
 
-    // Esto crea el fondo degradado de tus botones
     val gradientBrush = Brush.horizontalGradient(
         colors = listOf(NeonBlue, GreenGlow)
     )
@@ -39,18 +33,17 @@ fun AppButton(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Transparent, // Hacemos el color del botón transparente
-            contentColor = Color.Black // Texto negro
+            containerColor = Color.Transparent,
+            contentColor = Color.Black
         ),
-        // Aplicamos el degradado al fondo
-        contentPadding = PaddingValues(), // Quitamos padding interno
-        elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp) // Añade sombra
+        contentPadding = PaddingValues(),
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
     ) {
         Box(
             modifier = Modifier
                 .background(gradientBrush)
-                .fillMaxWidth() // Asegura que el degradado ocupe todo
-                .padding(vertical = 12.dp), // Padding vertical
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(text = text, fontWeight = FontWeight.Bold)
