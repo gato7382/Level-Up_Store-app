@@ -8,6 +8,8 @@ sealed class Screen(val route: String) {
     object Register : Screen("register")
     object Catalog : Screen("catalog")
 
+
+    object Admin : Screen("admin_panel")
     // Ruta con argumento (para un producto)
     object ProductDetail : Screen("product_detail/{productId}") {
         fun createRoute(productId: String) = "product_detail/$productId"

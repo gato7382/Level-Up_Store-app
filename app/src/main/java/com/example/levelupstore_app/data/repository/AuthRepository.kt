@@ -1,71 +1,69 @@
-// Ruta: com/example/levelupstore_app/data/repository/AuthRepository.kt
 package com.example.levelupstore_app.data.repository
 
 import android.content.Context
+import android.util.Log
 import com.example.levelupstore_app.data.model.User
+import com.example.levelupstore_app.data.network.RetrofitClient
 import com.example.levelupstore_app.data.storage.UserPreferences
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.decodeFromString
-import java.io.IOException
 
 class AuthRepository(
     private val context: Context,
     private val userPreferences: UserPreferences
 ) {
 
-    private val json = Json { ignoreUnknownKeys = true }
-
-    private fun getBaseUsers(): List<User> {
-        return try {
-            val jsonString = context.assets.open("usuarios.json")
-                .bufferedReader()
-                .use { it.readText() }
-            json.decodeFromString<List<User>>(jsonString)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            emptyList()
-        }
-    }
-
+    /**
+     * Inicia sesión contra el Backend.
+     * El backend debe devolver el objeto User con el campo 'isAdmin' correcto.
+     */
     suspend fun login(email: String, clave: String): User? {
-        val baseUsers = getBaseUsers()
-        val newUsers = userPreferences.newUsersFlow.first()
-        val allUsers = baseUsers + newUsers
-        val foundUser = allUsers.find { it.email == email && it.clave == clave }
+        return try {
+            val loginBody = mapOf("email" to email, "password" to clave)
 
-        if (foundUser != null) {
-            userPreferences.saveActiveUser(foundUser)
+            // 1. Llamada a la API
+            val user = RetrofitClient.instance.login(loginBody)
+
+            // 2. Si la API responde con éxito, guardamos el usuario (y su rol admin) localmente
+            userPreferences.saveActiveUser(user)
+
+            Log.d("AuthRepo", "Login exitoso: ${user.nombre} (Admin: ${user.isAdmin})")
+            user
+        } catch (e: Exception) {
+            Log.e("AuthRepo", "Error en login: ${e.message}")
+            e.printStackTrace()
+            null // Login fallido
         }
-        return foundUser
     }
 
     /**
-     * Registra un nuevo usuario (¡ACTUALIZADO!)
-     * Ahora recibe 'birthDate' en lugar de 'edad'.
+     * Registra un usuario nuevo en el Backend.
      */
     suspend fun register(nombre: String, birthDate: String, email: String, clave: String): Boolean {
-        // 1. Verifica si el email ya existe
-        val baseUsers = getBaseUsers()
-        val newUsers = userPreferences.newUsersFlow.first()
-        val emailExists = (baseUsers + newUsers).any { it.email == email }
+        return try {
+            // 1. Crear el objeto User
+            // Por defecto isAdmin es false, a menos que tu backend lo cambie
+            val newUser = User(
+                email = email,
+                clave = clave,
+                nombre = nombre,
+                fechaNacimiento = birthDate,
+                isAdmin = false
+            )
 
-        if (emailExists) {
-            return false // Falla: el email ya está en uso
+            // 2. Llamada POST a la API
+            val createdUser = RetrofitClient.instance.register(newUser)
+
+            // 3. Auto-login: Guardamos el usuario creado como activo
+            userPreferences.saveActiveUser(createdUser)
+
+            Log.d("AuthRepo", "Registro exitoso: ${createdUser.email}")
+            true
+        } catch (e: Exception) {
+            Log.e("AuthRepo", "Error en registro: ${e.message}")
+            // Aquí podrías manejar errores específicos (ej. "Email ya existe")
+            // dependiendo de lo que devuelva tu backend (400, 409, etc.)
+            false
         }
-
-        // 2. Si no existe, crea y guarda el nuevo usuario
-        val newUser = User(
-            email = email,
-            clave = clave,
-            nombre = nombre,
-            fechaNacimiento = birthDate // <-- CAMBIADO (antes era 'edad')
-        )
-
-        userPreferences.addNewUser(newUser) // Lo añade a 'usuariosNuevos'
-        userPreferences.saveActiveUser(newUser) // Lo define como 'usuarioActivo'
-        return true
     }
 
     suspend fun logout() {
@@ -78,6 +76,5 @@ class AuthRepository(
 
     suspend fun updateProfile(updatedUser: User) {
         userPreferences.saveActiveUser(updatedUser)
-        userPreferences.updateUserInNewList(updatedUser)
     }
 }

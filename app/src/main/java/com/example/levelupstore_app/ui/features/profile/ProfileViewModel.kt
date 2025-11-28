@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/features/profile/ProfileViewModel.kt
 package com.example.levelupstore_app.ui.features.profile
 
 import androidx.lifecycle.ViewModel
@@ -10,11 +9,12 @@ import com.example.levelupstore_app.data.repository.OrderRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flow // <-- IMPORTANTE
+import kotlinx.coroutines.flow.flowOf // <-- IMPORTANTE
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -36,23 +36,28 @@ class ProfileViewModel(
     private val orderRepository: OrderRepository
 ) : ViewModel() {
 
-    // 1. Observa al usuario activo (del AuthRepository)
+    // 1. Observa al usuario activo
     private val userStream: Flow<User?> = authRepository.getActiveUserStream()
 
-    // 2. Observa los pedidos, PERO *depende* del usuario
-    //    flatMapLatest es un operador avanzado que "cambia" de stream.
-    //    Cuando el 'user' cambia, se suscribe al nuevo 'getOrdersStream(user.email)'.
+    // 2. Observa los pedidos (CORREGIDO)
     private val ordersStream: Flow<List<Order>> = userStream.flatMapLatest { user ->
         if (user != null) {
-            // Si hay usuario, escucha su stream de pedidos
-            orderRepository.getOrdersStream(user.email)
+            // --- CORRECCIÓN AQUÍ ---
+            // Como el repositorio devuelve una List (no un Flow),
+            // usamos 'flow { emit(...) }' para convertirlo.
+            flow {
+                // Llamamos a la API (suspend function)
+                val ordersFromApi = orderRepository.getOrdersStream(user.email)
+                // Emitimos el resultado al flujo
+                emit(ordersFromApi)
+            }
         } else {
-            // Si no hay usuario, emite una lista vacía
-            MutableStateFlow(emptyList())
+            // Si no hay usuario, emitimos una lista vacía inmediatamente
+            flowOf(emptyList())
         }
     }
 
-    // 3. Combina ambos streams en un solo 'uiState' que la UI observará
+    // 3. Combina ambos streams en un solo 'uiState'
     val uiState: StateFlow<ProfileUiState> =
         combine(userStream, ordersStream) { user, orders ->
             ProfileUiState(
@@ -62,13 +67,12 @@ class ProfileViewModel(
             )
         }.stateIn(
             scope = viewModelScope,
-            started = kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.WhileSubscribed(5000),
             initialValue = ProfileUiState(isLoading = true)
         )
 
     /**
-     * Llama al repositorio para actualizar el perfil del usuario.
-     * (Reemplaza la lógica de guardado de perfil.js)
+     * Llama al repositorio para actualizar el perfil.
      */
     fun updateProfile(updatedUser: User) {
         viewModelScope.launch {

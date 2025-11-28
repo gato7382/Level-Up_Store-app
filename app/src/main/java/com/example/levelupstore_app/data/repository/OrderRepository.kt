@@ -1,33 +1,32 @@
-// Ruta: com/example/levelupstore_app/data/repository/OrderRepository.kt
 package com.example.levelupstore_app.data.repository
 
+import android.util.Log
 import com.example.levelupstore_app.data.model.Order
-import com.example.levelupstore_app.data.storage.OrderStorage
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import com.example.levelupstore_app.data.network.RetrofitClient
+// Ya no necesitamos OrderStorage aquí, usamos la API
 
-/**
- * Repositorio para la lógica del Historial de Pedidos (Mis Pedidos).
- */
-class OrderRepository(private val orderStorage: OrderStorage) {
+class OrderRepository(
+    // Quitamos OrderStorage del constructor si ya no lo usas localmente
+) {
 
-    /**
-     * Obtiene un "stream" de la lista de pedidos para UN usuario específico.
-     */
-    fun getOrdersStream(userEmail: String): Flow<List<Order>> {
-        return orderStorage.ordersMapFlow.map { map ->
-            map[userEmail] ?: emptyList()
+    suspend fun getOrdersStream(userEmail: String): List<Order> {
+        return try {
+            // Pide al servidor las órdenes de este usuario
+            RetrofitClient.instance.getOrdersByUser(userEmail)
+        } catch (e: Exception) {
+            Log.e("OrderRepo", "Error al obtener pedidos: ${e.message}")
+            emptyList()
         }
     }
 
-    /**
-     * Añade un nuevo pedido al historial de un usuario.
-     */
     suspend fun addOrder(userEmail: String, order: Order) {
-        val currentMap = orderStorage.ordersMapFlow.first()
-        val currentList = currentMap[userEmail] ?: emptyList()
-        val newList = listOf(order) + currentList
-        orderStorage.saveOrdersMap(currentMap + (userEmail to newList))
+        try {
+            // Envía la orden al servidor
+            // Nota: El servidor debería vincularla al email, o asegúrate
+            // de que tu objeto Order incluya el campo 'userEmail'.
+            RetrofitClient.instance.createOrder(order)
+        } catch (e: Exception) {
+            Log.e("OrderRepo", "Error al crear pedido: ${e.message}")
+        }
     }
 }

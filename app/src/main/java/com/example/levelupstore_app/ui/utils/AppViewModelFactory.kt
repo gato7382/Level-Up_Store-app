@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.levelupstore_app.LevelUpApp
+import com.example.levelupstore_app.ui.features.admin.AdminViewModel
 import com.example.levelupstore_app.ui.features.auth.AuthViewModel
 import com.example.levelupstore_app.ui.features.cart.CartViewModel
 import com.example.levelupstore_app.ui.features.catalog.CatalogViewModel
@@ -70,6 +71,12 @@ private class VmFactory(
                 app.authRepository,
                 app.orderRepository
             ) as T
+        }
+
+        else if (modelClass.isAssignableFrom(AdminViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            // AHORA RECIBE 'savedStateHandle'
+            return AdminViewModel(savedStateHandle, app.productRepository) as T
         }
         // --- FIN DEL CÓDIGO AÑADIDO ---
 

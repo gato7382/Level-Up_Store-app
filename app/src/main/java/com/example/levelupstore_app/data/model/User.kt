@@ -26,5 +26,6 @@ data class User(
     val gamerTag: String? = null,
     val bio: String? = null,
     val newsletter: Boolean? = false,
-    val notificaciones: Boolean? = false
+    val notificaciones: Boolean? = false,
+    val isAdmin: Boolean = false
 )

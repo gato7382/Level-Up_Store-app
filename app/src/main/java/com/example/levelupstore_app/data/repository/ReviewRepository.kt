@@ -1,33 +1,28 @@
-// Ruta: com/example/levelupstore_app/data/repository/ReviewRepository.kt
 package com.example.levelupstore_app.data.repository
 
+import android.util.Log
 import com.example.levelupstore_app.data.model.Review
-import com.example.levelupstore_app.data.storage.ReviewStorage
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import com.example.levelupstore_app.data.network.RetrofitClient
 
-/**
- * Repositorio para la lógica de Reseñas. Reemplaza reviews.js
- */
-class ReviewRepository(private val reviewStorage: ReviewStorage) {
+class ReviewRepository {
 
-    /**
-     * Obtiene un "stream" de la lista de reseñas para UN producto específico.
-     */
-    fun getReviewsStream(productId: String): Flow<List<Review>> {
-        return reviewStorage.reviewsMapFlow.map { map ->
-            map[productId] ?: emptyList()
+    // Nota: Cambiamos de Flow a List directa o suspend function
+    // porque las llamadas a red son "one-shot" (una sola vez), no un stream continuo
+    // a menos que uses algo avanzado como Polling o WebSockets.
+    suspend fun getReviews(productId: String): List<Review> {
+        return try {
+            RetrofitClient.instance.getReviewsByProduct(productId)
+        } catch (e: Exception) {
+            Log.e("ReviewRepo", "Error: ${e.message}")
+            emptyList()
         }
     }
 
-    /**
-     * Añade una nueva reseña a un producto.
-     */
-    suspend fun addReview(productId: String, review: Review) {
-        val currentMap = reviewStorage.reviewsMapFlow.first()
-        val currentList = currentMap[productId] ?: emptyList()
-        val newList = listOf(review) + currentList
-        reviewStorage.saveReviewsMap(currentMap + (productId to newList))
+    suspend fun addReview(review: Review) {
+        try {
+            RetrofitClient.instance.createReview(review)
+        } catch (e: Exception) {
+            Log.e("ReviewRepo", "Error al enviar reseña: ${e.message}")
+        }
     }
 }

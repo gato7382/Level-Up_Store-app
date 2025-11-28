@@ -1,8 +1,10 @@
-// Ruta: com/example/levelupstore_app/ui/features/profile/ProfileScreen.kt
 package com.example.levelupstore_app.ui.features.profile
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build // Icono de Herramienta
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
@@ -22,41 +24,46 @@ import androidx.navigation.compose.rememberNavController
 import com.example.levelupstore_app.ui.navigation.Screen
 import com.example.levelupstore_app.ui.utils.AppViewModelFactory
 
-// --- Define los items de la barra de navegación inferior ---
+// Definimos los items del menú inferior
 private sealed class ProfileNavItem(val route: String, val label: String, val icon: ImageVector) {
     object Data : ProfileNavItem(Screen.ProfileData.route, "Mis Datos", Icons.Default.Person)
     object Orders : ProfileNavItem(Screen.OrderHistory.route, "Mis Pedidos", Icons.Default.List)
 }
 private val profileNavItems = listOf(ProfileNavItem.Data, ProfileNavItem.Orders)
-// --- Fin de la definición ---
 
-
-/**
- * La PÁGINA principal de Perfil.
- * Contiene un Scaffold con navegación inferior anidada.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    mainNavController: NavController, // El router principal de la app
+    mainNavController: NavController, // Router principal (para salir o ir a Admin)
     profileViewModel: ProfileViewModel = viewModel(factory = AppViewModelFactory)
 ) {
-    // 1. Observa el estado del ViewModel (el "cerebro")
     val uiState by profileViewModel.uiState.collectAsState()
     val user = uiState.user
 
-    // 2. Creamos un NUEVO NavController SÓLO para esta sección (el router anidado)
+    // Router anidado para las pestañas internas de perfil
     val profileNavController = rememberNavController()
 
     Scaffold(
-        // 3. Barra Superior (TopBar) con título y botón de "Cerrar Sesión"
         topBar = {
             TopAppBar(
                 title = { Text("Mi Perfil") },
                 actions = {
+                    // 1. BOTÓN DE ADMIN (Tu lógica)
+                    // Solo se muestra si el usuario tiene isAdmin = true
+                    if (user?.isAdmin == true) {
+                        IconButton(onClick = { mainNavController.navigate(Screen.Admin.route) }) {
+                            Icon(
+                                imageVector = Icons.Default.Build,
+                                contentDescription = "Panel de Admin",
+                                tint = MaterialTheme.colorScheme.error // Rojo para destacar
+                            )
+                        }
+                    }
+
+                    // 2. BOTÓN DE CERRAR SESIÓN
                     IconButton(onClick = {
                         profileViewModel.logout()
-                        // Vuelve al login y borra todo el historial
+                        // Vuelve al login y borra todo el historial de navegación
                         mainNavController.navigate(Screen.Login.route) {
                             popUpTo(0) { inclusive = true }
                         }
@@ -66,24 +73,18 @@ fun ProfileScreen(
                 }
             )
         },
-        // 4. Barra de Navegación Inferior (para "Mis Datos" y "Mis Pedidos")
         bottomBar = {
             NavigationBar {
                 val navBackStackEntry by profileNavController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
 
-                // Itera sobre nuestros 2 items de navegación
                 profileNavItems.forEach { screen ->
                     NavigationBarItem(
                         icon = { Icon(screen.icon, contentDescription = screen.label) },
                         label = { Text(screen.label) },
-                        // Comprueba si la ruta actual es la seleccionada
                         selected = currentDestination?.route == screen.route,
                         onClick = {
-                            // Navega a la ruta de la sub-pantalla
                             profileNavController.navigate(screen.route) {
-                                // Lógica estándar para navegación inferior:
-                                // Evita acumular pantallas en el historial
                                 popUpTo(profileNavController.graph.findStartDestination().id) {
                                     saveState = true
                                 }
@@ -95,28 +96,32 @@ fun ProfileScreen(
                 }
             }
         }
-    ) { innerPadding -> // 'innerPadding' es el espacio que ocupan las barras
+    ) { innerPadding ->
 
-        // 5. Contenido Principal (el "router anidado")
+        // Contenido Principal (NavHost Anidado)
         NavHost(
             navController = profileNavController,
-            startDestination = Screen.ProfileData.route, // Inicia en "Mis Datos"
-            modifier = Modifier.padding(innerPadding) // Aplica el padding
+            startDestination = Screen.ProfileData.route,
+            modifier = Modifier.padding(innerPadding)
         ) {
-
-            // Ruta para "Mis Datos"
+            // Pestaña: Mis Datos
             composable(Screen.ProfileData.route) {
-                if (user != null) { // Muestra solo si el usuario ha cargado
+                if (user != null) {
                     ProfileDataScreen(
                         user = user,
                         onSave = { updatedUser ->
                             profileViewModel.updateProfile(updatedUser)
                         }
                     )
+                } else {
+                    // Muestra carga si el usuario aún no está listo
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
                 }
             }
 
-            // Ruta para "Mis Pedidos"
+            // Pestaña: Mis Pedidos
             composable(Screen.OrderHistory.route) {
                 OrderHistoryScreen(orders = uiState.orders)
             }
