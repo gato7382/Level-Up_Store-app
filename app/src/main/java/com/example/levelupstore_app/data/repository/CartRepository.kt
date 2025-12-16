@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/data/repository/CartRepository.kt
 package com.example.levelupstore_app.data.repository
 
 import com.example.levelupstore_app.data.model.CartItem
@@ -7,23 +6,12 @@ import com.example.levelupstore_app.data.storage.CartStorage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
-/**
- * Repositorio para la lógica del Carrito de Compras. Reemplaza cart.js
- *
- * @param cartStorage "Inyectamos" nuestro "localStorage" del carrito.
- */
 class CartRepository(private val cartStorage: CartStorage) {
 
-    /**
-     * Obtiene un "stream" de la lista de items del carrito.
-     */
     fun getCartItemsStream(): Flow<List<CartItem>> {
         return cartStorage.cartItemsFlow
     }
 
-    /**
-     * Añade un producto al carrito (como tu 'addItem' en cart.js)
-     */
     suspend fun addToCart(product: Product) {
         val currentItems = cartStorage.cartItemsFlow.first()
         val existingItem = currentItems.find { it.product.id == product.id }
@@ -38,19 +26,13 @@ class CartRepository(private val cartStorage: CartStorage) {
         cartStorage.saveCartItems(newItems)
     }
 
-    /**
-     * Elimina un producto del carrito (como tu 'removeItem' en cart.js)
-     */
-    suspend fun removeFromCart(productId: String) {
+    suspend fun removeFromCart(productId: Long) {
         val currentItems = cartStorage.cartItemsFlow.first()
         val newItems = currentItems.filter { it.product.id != productId }
         cartStorage.saveCartItems(newItems)
     }
 
-    /**
-     * Actualiza la cantidad de un item (como tu 'updateQuantity' en cart.js)
-     */
-    suspend fun updateQuantity(productId: String, newQuantity: Int) {
+    suspend fun updateQuantity(productId: Long, newQuantity: Int) {
         if (newQuantity < 1) {
             removeFromCart(productId)
             return
@@ -62,9 +44,6 @@ class CartRepository(private val cartStorage: CartStorage) {
         cartStorage.saveCartItems(newItems)
     }
 
-    /**
-     * Vacía el carrito (como tu 'clearCart' en cart.js)
-     */
     suspend fun clearCart() {
         cartStorage.saveCartItems(emptyList())
     }

@@ -14,16 +14,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 data class ProductDetailUiState(
     val product: Product? = null,
     val reviews: List<Review> = emptyList(),
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
-    val isLoggedIn: Boolean = false
+    val isLoggedIn: Boolean = false,
+    val isAdmin: Boolean = false // <-- NUEVO CAMPO
 )
 
 class ProductDetailViewModel(
@@ -33,8 +31,8 @@ class ProductDetailViewModel(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    // 1. AQUÍ TENEMOS EL ID DEL PRODUCTO ACTUAL (ej: "ps5")
-    private val productId: String = checkNotNull(savedStateHandle["productId"])
+    private val productIdString: String = checkNotNull(savedStateHandle["productId"])
+    private val productId: Long? = productIdString.toLongOrNull()
 
     private val _uiState = MutableStateFlow(ProductDetailUiState())
     val uiState: StateFlow<ProductDetailUiState> = _uiState.asStateFlow()
@@ -44,6 +42,11 @@ class ProductDetailViewModel(
     }
 
     private fun loadData() {
+        if (productId == null) {
+            _uiState.update { it.copy(isLoading = false, errorMessage = "ID de producto inválido") }
+            return
+        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
@@ -55,8 +58,6 @@ class ProductDetailViewModel(
                     return@launch
                 }
 
-                // 2. PEDIMOS SOLO LAS RESEÑAS DE ESTE PRODUCTO
-                // (El repositorio llama a la API filtrando por ?productId=...)
                 val reviews = reviewRepository.getReviews(productId)
                 val user = authRepository.getActiveUserStream().first()
 
@@ -65,7 +66,8 @@ class ProductDetailViewModel(
                         isLoading = false,
                         product = product,
                         reviews = reviews.sortedByDescending { r -> r.date },
-                        isLoggedIn = (user != null)
+                        isLoggedIn = (user != null),
+                        isAdmin = (user?.admin == true) // <-- VERIFICACIÓN DE ADMIN
                     )
                 }
             } catch (e: Exception) {
@@ -75,23 +77,16 @@ class ProductDetailViewModel(
     }
 
     fun addReview(text: String, rating: Int) {
+        if (productId == null) return
+
         viewModelScope.launch {
             val user = authRepository.getActiveUserStream().first() ?: return@launch
 
-            // 3. CREAMOS LA RESEÑA VINCULADA AL PRODUCTO
-            val newReview = Review(
-                productId = productId, // <-- ¡AQUÍ ESTÁ LA CLAVE! Usamos el ID de arriba
-                name = user.nombre,
-                rating = rating, // Guardamos las estrellas
-                text = text,
-                date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-            )
+            val result = reviewRepository.addReview(productId, rating, text)
 
-            // 4. ENVIAMOS AL SERVIDOR
-            reviewRepository.addReview(newReview)
-
-            // 5. RECARGAMOS LOS DATOS PARA VER LA NUEVA RESEÑA
-            loadData()
+            if (result.isSuccess) {
+                loadData()
+            }
         }
     }
 }

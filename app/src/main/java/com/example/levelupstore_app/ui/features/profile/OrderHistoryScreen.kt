@@ -27,8 +27,10 @@ private val currencyFormatter = NumberFormat.getCurrencyInstance(chileLocale)
 
 @Composable
 fun OrderHistoryScreen(
-    orders: List<Order> // Recibe la lista de pedidos del ViewModel
+    orders: List<Order>
 ) {
+    val sortedOrders = orders.sortedByDescending { it.dateCreated ?: "" }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -47,7 +49,7 @@ fun OrderHistoryScreen(
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(orders.sortedByDescending { it.date }) { order -> // Ordena por fecha
+                items(sortedOrders) { order ->
                     OrderCard(order = order)
                 }
             }
@@ -55,7 +57,6 @@ fun OrderHistoryScreen(
     }
 }
 
-// Molécula interna para mostrar UNA tarjeta de pedido
 @Composable
 private fun OrderCard(order: Order) {
     Card(
@@ -71,7 +72,7 @@ private fun OrderCard(order: Order) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Pedido: ${order.date}", // Muestra la fecha
+                    text = "Fecha: ${order.dateCreated?.take(10) ?: "N/A"}", 
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray
                 )
@@ -81,7 +82,7 @@ private fun OrderCard(order: Order) {
                     fontWeight = FontWeight.Bold
                 )
             }
-            Divider()
+            HorizontalDivider()
 
             // Lista de Items en el Pedido
             Column(modifier = Modifier.padding(16.dp)) {
@@ -92,15 +93,42 @@ private fun OrderCard(order: Order) {
                     ) {
                         Image(
                             painter = rememberAsyncImagePainter(
-                                model = "file:///android_asset/${item.product.images.firstOrNull()?.removePrefix("/")}",
-                                placeholder = painterResource(id = R.drawable.logo_level_up)
+                                model = item.productImageUrl,
+                                placeholder = painterResource(id = R.drawable.logo_level_up),
+                                error = painterResource(id = R.drawable.logo_level_up)
                             ),
-                            contentDescription = item.product.name,
+                            contentDescription = item.productName,
                             modifier = Modifier.size(40.dp),
                             contentScale = ContentScale.Crop
                         )
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text(text = "${item.quantity}x ${item.product.name}")
+                        
+                        // Información del Item y Subtotal
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = item.productName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                // Cantidad x Precio Unitario
+                                Text(
+                                    text = "${item.quantity} x ${currencyFormatter.format(item.price)}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.Gray
+                                )
+                                // Subtotal por producto
+                                Text(
+                                    text = currencyFormatter.format(item.price * item.quantity),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
                     }
                 }
             }

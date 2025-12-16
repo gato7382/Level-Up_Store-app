@@ -1,10 +1,10 @@
-// Ruta: com/example/levelupstore_app/ui/features/cart/CartViewModel.kt
 package com.example.levelupstore_app.ui.features.cart
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupstore_app.data.model.CartItem
 import com.example.levelupstore_app.data.model.Order
+import com.example.levelupstore_app.data.model.OrderItem
 import com.example.levelupstore_app.data.model.Product
 import com.example.levelupstore_app.data.repository.AuthRepository
 import com.example.levelupstore_app.data.repository.CartRepository
@@ -17,14 +17,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import kotlinx.coroutines.flow.SharingStarted
 
-/**
- * Estado de la UI para los DATOS del Carrito.
- */
 data class CartDataState(
     val items: List<CartItem> = emptyList(),
     val totalItems: Int = 0,
@@ -32,31 +26,23 @@ data class CartDataState(
     val discountApplied: Boolean = false
 )
 
-/**
- * El "Cerebro" (ViewModel) global del Carrito.
- * Reemplaza cart.js
- */
 class CartViewModel(
     private val cartRepository: CartRepository,
     private val authRepository: AuthRepository,
     private val orderRepository: OrderRepository
 ) : ViewModel() {
 
-    // --- ESTADO 1: Los DATOS del carrito (calculado) ---
     val cartDataState: StateFlow<CartDataState> =
         combine(
-            cartRepository.getCartItemsStream(), // Stream 1: Lista de items
-            authRepository.getActiveUserStream() // Stream 2: Usuario activo
+            cartRepository.getCartItemsStream(),
+            authRepository.getActiveUserStream()
         ) { items, user ->
-            // --- Esta lógica se ejecuta cada vez que los items O el usuario cambian ---
-
             val totalItems = items.sumOf { it.quantity }
-            var totalPrice = items.sumOf { it.product.price * it.quantity }
+            var totalPrice = items.sumOf { (it.product.price ?: 0.0) * it.quantity }
             var discountApplied = false
 
-            // Aplica descuento Duoc si el email coincide
             if (user?.email?.endsWith("@duocuc.cl") == true) {
-                totalPrice *= 0.8 // 20% de descuento
+                totalPrice *= 0.8
                 discountApplied = true
             }
 
@@ -66,21 +52,18 @@ class CartViewModel(
                 totalPrice = totalPrice,
                 discountApplied = discountApplied
             )
-        }.stateIn( // Convierte el Flow en un StateFlow (estado) que la UI puede observar
+        }.stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000), // Inicia cuando la UI observa
-            initialValue = CartDataState() // Estado inicial mientras carga
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = CartDataState()
         )
 
-    // --- ESTADO 2: La UI del carrito (si está abierto) ---
     private val _isCartOpen = MutableStateFlow(false)
     val isCartOpen: StateFlow<Boolean> = _isCartOpen.asStateFlow()
 
     fun toggleCart() {
-        _isCartOpen.update { !it } // Invierte el valor (abierto/cerrado)
+        _isCartOpen.update { !it }
     }
-
-    // --- FUNCIONES (Eventos que la UI llamará) ---
 
     fun addToCart(product: Product) {
         viewModelScope.launch {
@@ -88,20 +71,35 @@ class CartViewModel(
         }
     }
 
-    fun removeFromCart(productId: String) {
-        viewModelScope.launch {
-            cartRepository.removeFromCart(productId)
+    // Aceptamos Long o String y convertimos
+    fun removeFromCart(productId: Any) {
+        val id = when (productId) {
+            is Long -> productId
+            is String -> productId.toLongOrNull()
+            else -> null
+        }
+        if (id != null) {
+            viewModelScope.launch {
+                cartRepository.removeFromCart(id)
+            }
         }
     }
 
-    fun updateQuantity(productId: String, newQuantity: Int) {
-        viewModelScope.launch {
-            cartRepository.updateQuantity(productId, newQuantity)
+    fun updateQuantity(productId: Any, newQuantity: Int) {
+        val id = when (productId) {
+            is Long -> productId
+            is String -> productId.toLongOrNull()
+            else -> null
+        }
+        if (id != null) {
+            viewModelScope.launch {
+                cartRepository.updateQuantity(id, newQuantity)
+            }
         }
     }
 
     suspend fun checkout(): String {
-        val currentState = cartDataState.value // Usa el estado de datos
+        val currentState = cartDataState.value
         val user = authRepository.getActiveUserStream().first()
 
         if (user == null) {
@@ -111,16 +109,30 @@ class CartViewModel(
             return "Tu carrito está vacío."
         }
 
+        // Mapear CartItems a OrderItems
+        val orderItems = currentState.items.map { cartItem ->
+            OrderItem(
+                productId = cartItem.product.id ?: 0,
+                quantity = cartItem.quantity,
+                price = cartItem.product.price ?: 0.0,
+                productName = cartItem.product.name,
+                productImageUrl = cartItem.product.imageUrl ?: ""
+            )
+        }
+
         val newOrder = Order(
-            items = currentState.items,
-            total = currentState.totalPrice,
-            date = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date())
+            items = orderItems,
+            total = currentState.totalPrice
         )
 
-        orderRepository.addOrder(user.email, newOrder)
-        cartRepository.clearCart()
-        _isCartOpen.update { false } // Cierra el carrito después del checkout
-
-        return "¡Pedido realizado con éxito!"
+        val result = orderRepository.createOrder(newOrder)
+        
+        if (result.isSuccess) {
+            cartRepository.clearCart()
+            _isCartOpen.update { false }
+            return "¡Pedido realizado con éxito!"
+        } else {
+            return "Error al procesar el pedido: ${result.exceptionOrNull()?.message}"
+        }
     }
 }

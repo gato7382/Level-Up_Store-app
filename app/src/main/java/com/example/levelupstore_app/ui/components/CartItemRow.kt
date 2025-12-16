@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/components/CartItemRow.kt
 package com.example.levelupstore_app.ui.components
 
 import androidx.compose.foundation.Image
@@ -62,7 +61,8 @@ fun CartItemRow(
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = currencyFormatter.format(item.product.price * item.quantity),
+                // CORRECCIÓN AQUÍ: Usamos (item.product.price ?: 0.0) para evitar el error de nulo
+                text = currencyFormatter.format((item.product.price ?: 0.0) * item.quantity),
                 style = MaterialTheme.typography.bodyMedium
             )
         }

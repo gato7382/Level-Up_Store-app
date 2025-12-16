@@ -19,23 +19,19 @@ import com.example.levelupstore_app.data.storage.UserPreferences
 class LevelUpApp : Application() {
 
     // --- 1. Almacenamiento Local (Buzones) ---
-    // 'lazy' significa que se crean la primera vez que se usan
     private val userPreferences by lazy { UserPreferences(this) }
     private val cartStorage by lazy { CartStorage(this) }
-    // (Estos storage ya no se usan en los repositorios de red, pero los dejamos por si acaso)
-    private val reviewStorage by lazy { ReviewStorage(this) }
-    private val orderStorage by lazy { OrderStorage(this) }
-
+    
     // --- 2. Repositorios (Mensajeros) ---
 
-    // AuthRepository: SÍ necesita storage (para guardar la sesión)
+    // AuthRepository: Usa Retrofit y UserPreferences
     val authRepository by lazy {
-        AuthRepository(this, userPreferences)
+        AuthRepository(userPreferences)
     }
 
-    // ProductRepository: SÍ necesita context (para logs o compatibilidad)
+    // ProductRepository: Usa Retrofit
     val productRepository by lazy {
-        ProductRepository(this)
+        ProductRepository()
     }
 
     // CartRepository: SÍ necesita storage (el carrito sigue siendo local)
@@ -43,13 +39,13 @@ class LevelUpApp : Application() {
         CartRepository(cartStorage)
     }
 
-    // ReviewRepository: ¡YA NO necesita storage! (Usa Retrofit directo)
+    // ReviewRepository: Usa Retrofit
     val reviewRepository by lazy {
-        ReviewRepository() // <-- CORREGIDO: Paréntesis vacíos
+        ReviewRepository()
     }
 
-    // OrderRepository: ¡YA NO necesita storage! (Usa Retrofit directo)
+    // OrderRepository: Usa Retrofit
     val orderRepository by lazy {
-        OrderRepository() // <-- CORREGIDO: Paréntesis vacíos
+        OrderRepository()
     }
 }

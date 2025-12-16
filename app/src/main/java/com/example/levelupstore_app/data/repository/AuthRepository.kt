@@ -1,80 +1,97 @@
 package com.example.levelupstore_app.data.repository
 
-import android.content.Context
 import android.util.Log
 import com.example.levelupstore_app.data.model.User
 import com.example.levelupstore_app.data.network.RetrofitClient
 import com.example.levelupstore_app.data.storage.UserPreferences
 import kotlinx.coroutines.flow.Flow
+import retrofit2.HttpException
+import java.io.IOException
 
 class AuthRepository(
-    private val context: Context,
     private val userPreferences: UserPreferences
 ) {
 
-    /**
-     * Inicia sesión contra el Backend.
-     * El backend debe devolver el objeto User con el campo 'isAdmin' correcto.
-     */
-    suspend fun login(email: String, clave: String): User? {
+    suspend fun login(email: String, clave: String): Result<User> {
         return try {
-            val loginBody = mapOf("email" to email, "password" to clave)
+            val loginBody = mapOf("email" to email, "clave" to clave)
 
-            // 1. Llamada a la API
-            val user = RetrofitClient.instance.login(loginBody)
+            val loginResponse = RetrofitClient.instance.login(loginBody)
+            val token = loginResponse.token
 
-            // 2. Si la API responde con éxito, guardamos el usuario (y su rol admin) localmente
+            userPreferences.saveAuthToken(token)
+            RetrofitClient.setAuthToken(token)
+
+            val user = RetrofitClient.instance.getProfile()
             userPreferences.saveActiveUser(user)
 
-            Log.d("AuthRepo", "Login exitoso: ${user.nombre} (Admin: ${user.isAdmin})")
-            user
+            Result.success(user)
+        } catch (e: HttpException) {
+            val errorMsg = when (e.code()) {
+                401, 403 -> "Credenciales incorrectas"
+                404 -> "Usuario no encontrado"
+                else -> "Error del servidor: ${e.code()}"
+            }
+            Result.failure(Exception(errorMsg))
+        } catch (e: IOException) {
+            Result.failure(Exception("Error de conexión. Revisa tu internet."))
         } catch (e: Exception) {
-            Log.e("AuthRepo", "Error en login: ${e.message}")
-            e.printStackTrace()
-            null // Login fallido
+            Log.e("AuthRepo", "Error en login", e)
+            Result.failure(Exception("Error inesperado: ${e.message}"))
         }
     }
 
-    /**
-     * Registra un usuario nuevo en el Backend.
-     */
-    suspend fun register(nombre: String, birthDate: String, email: String, clave: String): Boolean {
+    suspend fun register(user: User): Result<Boolean> {
         return try {
-            // 1. Crear el objeto User
-            // Por defecto isAdmin es false, a menos que tu backend lo cambie
-            val newUser = User(
-                email = email,
-                clave = clave,
-                nombre = nombre,
-                fechaNacimiento = birthDate,
-                isAdmin = false
-            )
+            RetrofitClient.instance.register(user)
 
-            // 2. Llamada POST a la API
-            val createdUser = RetrofitClient.instance.register(newUser)
-
-            // 3. Auto-login: Guardamos el usuario creado como activo
-            userPreferences.saveActiveUser(createdUser)
-
-            Log.d("AuthRepo", "Registro exitoso: ${createdUser.email}")
-            true
+            if (user.clave != null) {
+                 val loginResult = login(user.email, user.clave)
+                 if (loginResult.isSuccess) {
+                     Result.success(true)
+                 } else {
+                     Result.success(false) 
+                 }
+            } else {
+                Result.success(true)
+            }
+        } catch (e: HttpException) {
+            val errorMsg = when (e.code()) {
+                409 -> "El correo ya está registrado"
+                400 -> "Datos inválidos"
+                else -> "Error del servidor: ${e.code()}"
+            }
+            Result.failure(Exception(errorMsg))
+        } catch (e: IOException) {
+            Result.failure(Exception("Error de conexión"))
         } catch (e: Exception) {
-            Log.e("AuthRepo", "Error en registro: ${e.message}")
-            // Aquí podrías manejar errores específicos (ej. "Email ya existe")
-            // dependiendo de lo que devuelva tu backend (400, 409, etc.)
-            false
+            Log.e("AuthRepo", "Error en registro", e)
+            Result.failure(e)
         }
     }
 
     suspend fun logout() {
         userPreferences.clearActiveUser()
+        userPreferences.clearAuthToken()
+        RetrofitClient.setAuthToken(null)
     }
 
     fun getActiveUserStream(): Flow<User?> {
         return userPreferences.activeUserFlow
     }
+    
+    fun getAuthTokenStream(): Flow<String?> {
+        return userPreferences.authTokenFlow
+    }
 
-    suspend fun updateProfile(updatedUser: User) {
-        userPreferences.saveActiveUser(updatedUser)
+    suspend fun updateProfile(updatedUser: User): Result<User> {
+        return try {
+            val resultUser = RetrofitClient.instance.updateProfile(updatedUser)
+            userPreferences.saveActiveUser(resultUser)
+            Result.success(resultUser)
+        } catch (e: Exception) {
+             Log.e("AuthRepo", "Error actualizando perfil", e)
+             Result.failure(e)
+        }
     }
 }

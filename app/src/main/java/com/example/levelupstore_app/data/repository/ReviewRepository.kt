@@ -2,27 +2,28 @@ package com.example.levelupstore_app.data.repository
 
 import android.util.Log
 import com.example.levelupstore_app.data.model.Review
+import com.example.levelupstore_app.data.model.ReviewRequest
 import com.example.levelupstore_app.data.network.RetrofitClient
 
 class ReviewRepository {
 
-    // Nota: Cambiamos de Flow a List directa o suspend function
-    // porque las llamadas a red son "one-shot" (una sola vez), no un stream continuo
-    // a menos que uses algo avanzado como Polling o WebSockets.
-    suspend fun getReviews(productId: String): List<Review> {
+    suspend fun getReviews(productId: Long): List<Review> {
         return try {
             RetrofitClient.instance.getReviewsByProduct(productId)
         } catch (e: Exception) {
-            Log.e("ReviewRepo", "Error: ${e.message}")
+            Log.e("ReviewRepo", "Error fetching reviews", e)
             emptyList()
         }
     }
 
-    suspend fun addReview(review: Review) {
-        try {
-            RetrofitClient.instance.createReview(review)
+    suspend fun addReview(productId: Long, rating: Int, comment: String): Result<Review> {
+        return try {
+            val request = ReviewRequest(rating, comment)
+            val review = RetrofitClient.instance.createReview(productId, request)
+            Result.success(review)
         } catch (e: Exception) {
-            Log.e("ReviewRepo", "Error al enviar reseña: ${e.message}")
+            Log.e("ReviewRepo", "Error creating review", e)
+            Result.failure(e)
         }
     }
 }

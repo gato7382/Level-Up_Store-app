@@ -10,15 +10,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.UUID
+import java.io.File
+import java.util.Locale
 
 data class AdminUiState(
-    val id: String? = null, // Si es null, es modo CREAR. Si tiene valor, es modo EDITAR.
+    val id: Long? = null,
     val name: String = "",
     val price: String = "",
     val category: String = "",
     val description: String = "",
-    val imageUrl: String = "",
+    val imageUrl: String = "", 
     val isLoading: Boolean = false,
     val message: String? = null,
     val success: Boolean = false,
@@ -26,22 +27,23 @@ data class AdminUiState(
 )
 
 class AdminViewModel(
-    savedStateHandle: SavedStateHandle, // Para recibir ID si venimos a editar
+    savedStateHandle: SavedStateHandle,
     private val productRepository: ProductRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AdminUiState())
     val uiState: StateFlow<AdminUiState> = _uiState.asStateFlow()
 
-    // Si recibimos un productId al abrir la pantalla, cargamos los datos
     init {
-        val productId = savedStateHandle.get<String>("productId")
-        if (productId != null && productId != "{productId}") { // Validación simple
+        val productIdString = savedStateHandle.get<String>("productId")
+        val productId = productIdString?.toLongOrNull()
+        
+        if (productId != null) {
             loadProductForEdit(productId)
         }
     }
 
-    private fun loadProductForEdit(id: String) {
+    private fun loadProductForEdit(id: Long) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             val product = productRepository.getProductById(id)
@@ -51,10 +53,10 @@ class AdminViewModel(
                         isLoading = false,
                         id = product.id,
                         name = product.name,
-                        price = product.price.toInt().toString(), // Simplificación a Int
+                        price = product.price?.toString() ?: "",
                         category = product.category,
                         description = product.description,
-                        imageUrl = product.images.firstOrNull() ?: ""
+                        imageUrl = product.imageUrl ?: ""
                     )
                 }
             } else {
@@ -63,7 +65,6 @@ class AdminViewModel(
         }
     }
 
-    // --- Setters ---
     fun onNameChange(v: String) = _uiState.update { it.copy(name = v) }
     fun onPriceChange(v: String) = _uiState.update { it.copy(price = v) }
     fun onCategoryChange(v: String) = _uiState.update { it.copy(category = v) }
@@ -79,29 +80,50 @@ class AdminViewModel(
         }
         _uiState.update { it.copy(isLoading = true, message = null) }
 
+        // --- CORRECCIÓN: Formateo de Categoría (Capitalize) ---
+        // "tEST" -> "Test", " consolas " -> "Consolas"
+        val rawCategory = state.category.trim()
+        val formattedCategory = if (rawCategory.isNotEmpty()) {
+            rawCategory.lowercase(Locale.ROOT)
+                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
+        } else {
+            "General" // Valor por defecto si está vacío
+        }
+
         viewModelScope.launch {
             val isEditing = state.id != null
+            
+            val isRemoteImage = state.imageUrl.startsWith("http")
+            val imageFile = if (state.imageUrl.isNotBlank() && !isRemoteImage) {
+                File(state.imageUrl)
+            } else {
+                null
+            }
 
             val product = Product(
-                id = state.id ?: UUID.randomUUID().toString(), // Usa ID existente o genera uno
-                name = state.name,
-                price = state.price.toDoubleOrNull() ?: 0.0,
-                category = state.category,
-                description = state.description,
-                images = listOf(state.imageUrl),
-                specs = emptyList()
+                id = state.id,
+                name = state.name.trim(), // Limpiamos espacios extra
+                price = state.price.toDoubleOrNull(),
+                category = formattedCategory, // Usamos la categoría formateada
+                description = state.description.trim(),
+                imageUrl = null
             )
 
             val result = if (isEditing) {
-                productRepository.updateProduct(product)
+                 productRepository.updateProduct(product, imageFile)
             } else {
-                productRepository.addProduct(product)
+                if (imageFile != null) {
+                    productRepository.addProduct(product, imageFile)
+                } else {
+                    Result.failure(Exception("La imagen es obligatoria"))
+                }
             }
 
-            if (result) {
+            if (result.isSuccess) {
                 _uiState.update { it.copy(isLoading = false, message = "Guardado con éxito", success = true) }
             } else {
-                _uiState.update { it.copy(isLoading = false, message = "Error al guardar") }
+                val error = result.exceptionOrNull()?.message ?: "Error desconocido"
+                _uiState.update { it.copy(isLoading = false, message = "Error: $error") }
             }
         }
     }
@@ -111,7 +133,7 @@ class AdminViewModel(
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             val result = productRepository.deleteProduct(id)
-            if (result) {
+            if (result.isSuccess) {
                 _uiState.update { it.copy(isLoading = false, message = "Producto eliminado", isDeleteSuccess = true) }
             } else {
                 _uiState.update { it.copy(isLoading = false, message = "Error al eliminar") }

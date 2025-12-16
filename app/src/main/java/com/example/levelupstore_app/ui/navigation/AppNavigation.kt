@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/navigation/AppNavigation.kt
 package com.example.levelupstore_app.ui.navigation
 
 import androidx.compose.runtime.Composable
@@ -12,8 +11,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-// --- Imports de tus pantallas ---
-import com.example.levelupstore_app.ui.features.admin.AdminProductScreen // <-- ¡Importante para el Admin!
+import com.example.levelupstore_app.ui.features.admin.AdminProductScreen
 import com.example.levelupstore_app.ui.features.auth.AuthViewModel
 import com.example.levelupstore_app.ui.features.auth.LoginScreen
 import com.example.levelupstore_app.ui.features.auth.RegisterScreen
@@ -27,13 +25,9 @@ import com.example.levelupstore_app.ui.utils.AppViewModelFactory
 fun AppNavigation(
     navController: NavHostController,
     modifier: Modifier = Modifier,
-    // 1. Recibimos el AuthViewModel para verificar la sesión ("El Guardia")
     authViewModel: AuthViewModel = viewModel(factory = AppViewModelFactory)
 ) {
-    // 2. Observamos el estado de la sesión (usuario logueado o null)
     val sessionState by authViewModel.sessionState.collectAsState(initial = null)
-
-    // 3. Ruta de inicio (siempre Login, que redirige si ya hay sesión)
     val startDestination = Screen.Login.route
 
     NavHost(
@@ -41,8 +35,7 @@ fun AppNavigation(
         startDestination = startDestination,
         modifier = modifier
     ) {
-
-        // --- RUTAS DE AUTENTICACIÓN ---
+        // --- AUTH ---
         composable(route = Screen.Login.route) {
             LoginScreen(navController = navController, authViewModel = authViewModel)
         }
@@ -51,7 +44,7 @@ fun AppNavigation(
             RegisterScreen(navController = navController)
         }
 
-        // --- RUTAS PRINCIPALES ---
+        // --- PRINCIPALES ---
         composable(route = Screen.Home.route) {
             HomeScreen(navController = navController)
         }
@@ -60,7 +53,6 @@ fun AppNavigation(
             CatalogScreen(navController = navController)
         }
 
-        // Ruta con argumento (ID del producto)
         composable(
             route = Screen.ProductDetail.route,
             arguments = listOf(navArgument("productId") { type = NavType.StringType })
@@ -68,38 +60,30 @@ fun AppNavigation(
             ProductDetailScreen(navController = navController)
         }
 
-        // --- RUTA DE ADMINISTRADOR (¡NUEVA!) ---
-        composable(route = Screen.Admin.route) {
+        // --- ADMIN (Ruta con argumento opcional) ---
+        // Usamos una ruta manual extendida para soportar el parámetro opcional
+        composable(
+            route = "admin_panel?productId={productId}",
+            arguments = listOf(navArgument("productId") {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            })
+        ) {
             AdminProductScreen(navController = navController)
         }
 
-        // --- RUTA DE PERFIL (PROTEGIDA) ---
+        // --- PERFIL ---
         composable(route = Screen.ProfileGraph.route) {
-
-            // LÓGICA DEL GUARDIA:
-            // Comprueba si el usuario está logueado ANTES de mostrar la pantalla
             if (sessionState != null) {
-                // Si SÍ hay usuario, muestra la pantalla de Perfil
-                // Le pasamos 'navController' para que pueda navegar fuera (ej. al Admin o Login)
                 ProfileScreen(mainNavController = navController)
             } else {
-                // Si NO hay usuario, redirige automáticamente a Login
                 LaunchedEffect(Unit) {
                     navController.navigate(Screen.Login.route) {
-                        // Borra el intento de ir a perfil del historial
                         popUpTo(Screen.ProfileGraph.route) { inclusive = true }
                     }
                 }
             }
-        }
-        composable(
-            route = Screen.Admin.route,
-            arguments = listOf(navArgument("productId") {
-                type = NavType.StringType
-                nullable = true // Es opcional (null = crear nuevo)
-            })
-        ) {
-            AdminProductScreen(navController = navController)
         }
     }
 }

@@ -1,10 +1,10 @@
-// Ruta: com/example/levelupstore_app/ui/features/auth/AuthViewModel.kt
 package com.example.levelupstore_app.ui.features.auth
 
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelupstore_app.data.model.User
+import com.example.levelupstore_app.data.network.RetrofitClient
 import com.example.levelupstore_app.data.repository.AuthRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,17 +15,16 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException // <-- Este es el que teníamos
-import java.time.DateTimeException         // <-- ¡AÑADIMOS ESTE!
+import java.time.DateTimeException
 
 data class AuthUiState(
     val email: String = "",
     val password: String = "",
     val name: String = "",
-    val birthDate: String = "", // Guarda solo los 8 dígitos (DDMMYYYY)
+    val birthDate: String = "", 
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val loginSuccess: Boolean = false,
+    val loginSuccess: Boolean = false, // Indica si el LOGIN MANUAL fue exitoso
     val registerSuccess: Boolean = false
 )
 
@@ -38,7 +37,15 @@ class AuthViewModel(
 
     val sessionState: Flow<User?> = authRepository.getActiveUserStream()
 
-    // --- EVENTOS (Funciones que la UI llamará) ---
+    init {
+        viewModelScope.launch {
+            authRepository.getAuthTokenStream().collect { token ->
+                RetrofitClient.setAuthToken(token)
+            }
+        }
+    }
+
+    // --- EVENTOS ---
     fun onEmailChange(email: String) {
         _uiState.update { it.copy(email = email, errorMessage = null) }
     }
@@ -52,15 +59,21 @@ class AuthViewModel(
         _uiState.update { it.copy(birthDate = date, errorMessage = null) }
     }
 
+    // Resetea los estados de éxito para evitar navegaciones fantasma al volver al Login
+    fun resetAuthStates() {
+        _uiState.update { it.copy(loginSuccess = false, registerSuccess = false, errorMessage = null, isLoading = false) }
+    }
+
     fun login() {
         if (uiState.value.isLoading) return
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
         viewModelScope.launch {
-            val user = authRepository.login(uiState.value.email, uiState.value.password)
-            if (user != null) {
+            val result = authRepository.login(uiState.value.email, uiState.value.password)
+            if (result.isSuccess) {
                 _uiState.update { it.copy(isLoading = false, loginSuccess = true) }
             } else {
-                _uiState.update { it.copy(isLoading = false, errorMessage = "Usuario o contraseña incorrectos") }
+                val errorMsg = result.exceptionOrNull()?.message ?: "Usuario o contraseña incorrectos"
+                _uiState.update { it.copy(isLoading = false, errorMessage = errorMsg) }
             }
         }
     }
@@ -75,24 +88,22 @@ class AuthViewModel(
             return
         }
 
-        val birthDateString = uiState.value.birthDate // "27101995"
+        val birthDateString = uiState.value.birthDate 
 
         if (birthDateString.length != 8) {
             _uiState.update { it.copy(isLoading = false, errorMessage = "Formato de fecha inválido. Usa DD-MM-YYYY.") }
             return
         }
 
-        var age: Int
-        var dateToSave: String // Formato AAAA-MM-DD para guardar
+        var dateToSave: String 
 
-        // --- ¡BLOQUE CATCH CORREGIDO! ---
         try {
             val inputFormatter = DateTimeFormatter.ofPattern("ddMMuuuu")
             val outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
             val birthDate = LocalDate.parse(birthDateString, inputFormatter)
             val today = LocalDate.now()
-            age = Period.between(birthDate, today).years
+            val age = Period.between(birthDate, today).years
 
             if (age < 18) {
                 _uiState.update { it.copy(isLoading = false, errorMessage = "Debes ser mayor de 18 años.") }
@@ -101,28 +112,33 @@ class AuthViewModel(
 
             dateToSave = birthDate.format(outputFormatter)
 
-        } catch (e: DateTimeException) { // <-- ¡CAMBIO! Atrapa DateTimeException (más general)
-            _uiState.update { it.copy(isLoading = false, errorMessage = "Fecha inválida (ej: día 32 o mes 13).") }
+        } catch (e: DateTimeException) {
+            _uiState.update { it.copy(isLoading = false, errorMessage = "Fecha inválida.") }
             return
         }
-        // --- FIN DEL BLOQUE CATCH ---
 
         viewModelScope.launch {
-            val success = authRepository.register(
+            val newUser = User(
+                email = email,
+                clave = uiState.value.password,
                 nombre = uiState.value.name,
-                birthDate = dateToSave,
-                email = uiState.value.email,
-                clave = uiState.value.password
+                fechaNacimiento = dateToSave
             )
-            if (success) {
+            val result = authRepository.register(newUser)
+            
+            if (result.isSuccess) {
                 _uiState.update { it.copy(isLoading = false, registerSuccess = true) }
             } else {
-                _uiState.update { it.copy(isLoading = false, errorMessage = "El email ya está registrado") }
+                val errorMsg = result.exceptionOrNull()?.message ?: "Error en el registro"
+                _uiState.update { it.copy(isLoading = false, errorMessage = errorMsg) }
             }
         }
     }
 
     fun logout() {
-        viewModelScope.launch { authRepository.logout() }
+        viewModelScope.launch { 
+            authRepository.logout()
+            resetAuthStates() // IMPORTANTE: Limpiamos los flags de éxito para que al volver al Login no nos redirija automáticamente
+        }
     }
 }

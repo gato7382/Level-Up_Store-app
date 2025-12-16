@@ -1,4 +1,3 @@
-// Ruta: com/example/levelupstore_app/ui/features/common/CartDropdown.kt
 package com.example.levelupstore_app.ui.features.common
 
 import android.widget.Toast
@@ -83,9 +82,10 @@ fun CartDropdown(
                         items(cartDataState.items) { item ->
                             CartItemRow(
                                 item = item,
-                                onIncrease = { cartViewModel.updateQuantity(item.product.id, item.quantity + 1) },
-                                onDecrease = { cartViewModel.updateQuantity(item.product.id, item.quantity - 1) },
-                                onRemove = { cartViewModel.removeFromCart(item.product.id) }
+                                // CORRECCIÓN: Agregamos '!!' porque el ID es necesario y asumimos que existe
+                                onIncrease = { cartViewModel.updateQuantity(item.product.id!!, item.quantity + 1) },
+                                onDecrease = { cartViewModel.updateQuantity(item.product.id!!, item.quantity - 1) },
+                                onRemove = { cartViewModel.removeFromCart(item.product.id!!) }
                             )
                             Divider()
                         }

@@ -1,10 +1,14 @@
 package com.example.levelupstore_app.data.model
 
+import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Review(
-    val id: String = "", // ID único generado por la BD
-    val productId: String, // <-- ¡NUEVO! Para saber de qué producto es
-    val name: String,
+    val id: Long? = null,
+    val name: String? = null,
     val rating: Int,
-    val text: String,
-    val date: String
+    val text: String? = null,
+    val date: String? = null,
+    val user: User? = null
 )

@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Build // Icono de Herramienta
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
@@ -24,7 +24,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.levelupstore_app.ui.navigation.Screen
 import com.example.levelupstore_app.ui.utils.AppViewModelFactory
 
-// Definimos los items del menú inferior
 private sealed class ProfileNavItem(val route: String, val label: String, val icon: ImageVector) {
     object Data : ProfileNavItem(Screen.ProfileData.route, "Mis Datos", Icons.Default.Person)
     object Orders : ProfileNavItem(Screen.OrderHistory.route, "Mis Pedidos", Icons.Default.List)
@@ -34,13 +33,12 @@ private val profileNavItems = listOf(ProfileNavItem.Data, ProfileNavItem.Orders)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    mainNavController: NavController, // Router principal (para salir o ir a Admin)
+    mainNavController: NavController,
     profileViewModel: ProfileViewModel = viewModel(factory = AppViewModelFactory)
 ) {
     val uiState by profileViewModel.uiState.collectAsState()
     val user = uiState.user
 
-    // Router anidado para las pestañas internas de perfil
     val profileNavController = rememberNavController()
 
     Scaffold(
@@ -48,22 +46,20 @@ fun ProfileScreen(
             TopAppBar(
                 title = { Text("Mi Perfil") },
                 actions = {
-                    // 1. BOTÓN DE ADMIN (Tu lógica)
-                    // Solo se muestra si el usuario tiene isAdmin = true
-                    if (user?.isAdmin == true) {
+                    // Botón Admin (solo si isAdmin es true)
+                    if (user?.admin == true) { // CORRECCIÓN: el campo en el modelo User es 'admin', no 'isAdmin'
                         IconButton(onClick = { mainNavController.navigate(Screen.Admin.route) }) {
                             Icon(
                                 imageVector = Icons.Default.Build,
                                 contentDescription = "Panel de Admin",
-                                tint = MaterialTheme.colorScheme.error // Rojo para destacar
+                                tint = MaterialTheme.colorScheme.error
                             )
                         }
                     }
 
-                    // 2. BOTÓN DE CERRAR SESIÓN
+                    // Botón Logout
                     IconButton(onClick = {
                         profileViewModel.logout()
-                        // Vuelve al login y borra todo el historial de navegación
                         mainNavController.navigate(Screen.Login.route) {
                             popUpTo(0) { inclusive = true }
                         }
@@ -98,13 +94,11 @@ fun ProfileScreen(
         }
     ) { innerPadding ->
 
-        // Contenido Principal (NavHost Anidado)
         NavHost(
             navController = profileNavController,
             startDestination = Screen.ProfileData.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            // Pestaña: Mis Datos
             composable(Screen.ProfileData.route) {
                 if (user != null) {
                     ProfileDataScreen(
@@ -114,14 +108,12 @@ fun ProfileScreen(
                         }
                     )
                 } else {
-                    // Muestra carga si el usuario aún no está listo
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
                         CircularProgressIndicator()
                     }
                 }
             }
 
-            // Pestaña: Mis Pedidos
             composable(Screen.OrderHistory.route) {
                 OrderHistoryScreen(orders = uiState.orders)
             }
