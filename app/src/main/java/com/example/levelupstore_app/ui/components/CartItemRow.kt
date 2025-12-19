@@ -43,7 +43,7 @@ fun CartItemRow(
         // Imagen
         Image(
             painter = rememberAsyncImagePainter(
-                model = "file:///android_asset/${item.product.images.firstOrNull()?.removePrefix("/")}",
+                model = item.product.imageUrl,
                 placeholder = painterResource(id = R.drawable.logo_level_up)
             ),
             contentDescription = item.product.name,
